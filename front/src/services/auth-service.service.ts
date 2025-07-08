@@ -1,27 +1,34 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable, throwError, BehaviorSubject } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { User } from 'src/models/User.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthServiceService {
-  private baseUrl = 'http://localhost:9090/api/auth'; // Corrigé pour correspondre au backend
+  private baseUrl = 'http://localhost:9090/api/auth';
+  private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
+  isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    // Check if user is already authenticated (e.g., on page refresh)
+    this.checkInitialAuthStatus();
+  }
 
   login(email: string, password: string): Observable<any> {
     return this.http.post(`${this.baseUrl}/signin`, { email, password }, {
       withCredentials: true
-    });
+    }).pipe(
+      tap(() => {
+        this.isAuthenticatedSubject.next(true);
+      })
+    );
   }
 
   registerPatient(user: User, image: File | null = null): Observable<any> {
     const formData = new FormData();
-    
-    // Préparer le payload JSON
     const payload: any = {
       username: user.username,
       email: user.email,
@@ -40,10 +47,7 @@ export class AuthServiceService {
       dossierfile: user.dossierfile || []
     };
 
-    // Ajouter le payload JSON au form-data
     formData.append('signUpRequest', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
-
-    // Ajouter l'image si elle existe
     if (image) {
       formData.append('image', image);
     }
@@ -56,8 +60,6 @@ export class AuthServiceService {
 
   registerDoctor(user: User, image: File | null = null): Observable<any> {
     const formData = new FormData();
-    
-    // Préparer le payload JSON
     const payload: any = {
       username: user.username,
       email: user.email,
@@ -73,10 +75,7 @@ export class AuthServiceService {
       bio: user.bio || undefined
     };
 
-    // Ajouter le payload JSON au form-data
     formData.append('signUpRequest', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
-
-    // Ajouter l'image si elle existe
     if (image) {
       formData.append('image', image);
     }
@@ -85,5 +84,25 @@ export class AuthServiceService {
       .pipe(
         catchError(error => throwError(() => new Error(error.error?.message || 'Échec de l\'inscription')))
       );
+  }
+
+  logout(): Observable<any> {
+    return this.http.post(`${this.baseUrl}/signout`, {}, { withCredentials: true })
+      .pipe(
+        tap(() => {
+          this.isAuthenticatedSubject.next(false);
+        }),
+        catchError(error => throwError(() => new Error(error.error?.message || 'Échec de la déconnexion')))
+      );
+  }
+
+  isAuthenticated(): boolean {
+    return this.isAuthenticatedSubject.value;
+  }
+
+  private checkInitialAuthStatus(): void {
+    // You might want to check with backend or local storage
+    // For simplicity, assume not authenticated initially
+    this.isAuthenticatedSubject.next(false);
   }
 }

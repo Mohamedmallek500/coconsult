@@ -23,7 +23,7 @@
 
           <!-- Filters -->
           <div class="row mb-3">
-            <div class="col-md-6">
+            <div class="col-md-4">
               <div class="form-group">
                 <label for="filterRole">Filtrer par rôle:</label>
                 <select id="filterRole" class="form-control" [(ngModel)]="filterRole" (change)="onFilterChange()">
@@ -34,16 +34,28 @@
                 </select>
               </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
               <div class="form-group">
-                <label for="filterSearch">Rechercher:</label>
+                <label for="filterNom">Nom:</label>
                 <input 
                   type="text" 
-                  id="filterSearch" 
+                  id="filterNom" 
                   class="form-control" 
-                  [(ngModel)]="filterSearch" 
+                  [(ngModel)]="filterNom" 
                   (input)="onFilterChange()"
-                  placeholder="Nom, prénom, email, username...">
+                  placeholder="Rechercher par nom...">
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                <label for="filterPrenom">Prénom:</label>
+                <input 
+                  type="text" 
+                  id="filterPrenom" 
+                  class="form-control" 
+                  [(ngModel)]="filterPrenom" 
+                  (input)="onFilterChange()"
+                  placeholder="Rechercher par prénom...">
               </div>
             </div>
           </div>
@@ -144,9 +156,9 @@
                   <div class="col-md-6">
                     <div class="form-group mb-3">
                       <label for="image">Image de profil</label>
-                      <input type="file" id="image" class="form-control" (change)="onFileSelected($event)" accept="image/jpeg,image/png">
+                      hlad<input type="file" id="image" class="form-control" (change)="onFileSelected($event)" accept="image/jpeg,image/png">
                       <div *ngIf="imageError" class="text-danger">{{ imageError }}</div>
-                      <div *ngIf="selectedFile" class="mt-2">
+                      <div *ngIf="imagePreview" class="mt-2">
                         <img [src]="imagePreview" class="preview-image" alt="Image Preview">
                       </div>
                     </div>

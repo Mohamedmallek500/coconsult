@@ -554,6 +554,62 @@ public class UserController {
             return ResponseEntity.status(500).body(new MessageResponse("Error: " + e.getMessage()));
         }
     }
+
+
+
+    @GetMapping("/filter")
+    public ResponseEntity<?> getFilteredUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String nom,
+            @RequestParam(required = false) String prenom,
+            @RequestParam(required = false) String role) {
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<User> userPage = userRepository.findUsersByCriteria(nom, prenom, role, pageable);
+            List<UserResponse> userResponses = userPage.getContent().stream()
+                    .map(user -> {
+                        List<String> roles = user.getRoles().stream()
+                                .map(userRole -> userRole.getName().name()) // Renamed 'role' to 'userRole'
+                                .collect(Collectors.toList());
+                        return new UserResponse(
+                                user.getId(),
+                                user.getUsername(),
+                                user.getEmail(),
+                                user.getNumtel(),
+                                user.getNom(),
+                                user.getPrenom(),
+                                user.getDateNaissance(),
+                                user.getAdresse(),
+                                user.getCin(),
+                                user.getImage(),
+                                roles,
+                                user instanceof Doctor ? ((Doctor) user).isApproved() : null,
+                                user instanceof Doctor ? ((Doctor) user).getSpeciality() : null,
+                                user instanceof Doctor ? ((Doctor) user).getBio() : null,
+                                user instanceof Patient ? ((Patient) user).getNumCnss() : null,
+                                user instanceof Patient ? ((Patient) user).getNomDocteurFamille() : null,
+                                user instanceof Patient ? ((Patient) user).getMpsi() : null,
+                                user instanceof Patient ? ((Patient) user).getNumDossier() : null,
+                                user instanceof Patient ? ((Patient) user).getDossierfile().stream()
+                                        .map(Maladie::getId).collect(Collectors.toList()) : null
+                        );
+                    })
+                    .collect(Collectors.toList());
+
+            logger.info("Retrieved {} filtered users on page {} with filters nom: {}, prenom: {}, role: {}",
+                    userResponses.size(), page, nom, prenom, role);
+            return ResponseEntity.ok(new PageResponse(userResponses, userPage.getTotalPages()));
+        } catch (IllegalArgumentException e) {
+            logger.error("Invalid role value: {}", role);
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Invalid role value"));
+        } catch (Exception e) {
+            logger.error("Failed to retrieve filtered users. Error: {}", e.getMessage());
+            return ResponseEntity.status(500).body(new MessageResponse("Error: " + e.getMessage()));
+        }
+    }
+
+
 }
 
 // Helper class to return paginated response

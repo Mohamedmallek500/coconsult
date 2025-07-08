@@ -20,6 +20,21 @@ export class UserService {
     return this.http.get<User>(`${this.baseUrl}/${id}`, { withCredentials: true });
   }
 
+  filterUsers(nom?: string, prenom?: string, role?: string, page: number = 0, size: number = 10): Observable<{ content: User[], totalPages: number }> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    if (nom) params = params.set('nom', nom);
+    if (prenom) params = params.set('prenom', prenom);
+    if (role) params = params.set('role', role);
+
+    return this.http.get<{ content: User[], totalPages: number }>(`${this.baseUrl}/filter`, { params, withCredentials: true })
+      .pipe(
+        catchError(error => throwError(() => new Error(error.error?.message || 'Échec de la récupération des utilisateurs filtrés')))
+      );
+  }
+
 createUser(user: User, image?: File): Observable<{ message: string }> {
   if (image) {
     const formData = new FormData();

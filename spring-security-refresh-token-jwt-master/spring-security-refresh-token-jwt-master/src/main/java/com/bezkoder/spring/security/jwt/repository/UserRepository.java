@@ -31,6 +31,12 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
             .map(user -> (Doctor) user);
   }
 
+  default Page<User> findUsersByCriteria(String nom, String prenom, String role, Pageable pageable) {
+    return findAll(UserSpecification.findUsersByCriteria(nom, prenom, role), pageable);
+  }
+
   @Query("SELECT DISTINCT d.speciality FROM Doctor d WHERE d.speciality IS NOT NULL")
   List<String> findAllDistinctSpecialities();
+
+
 }

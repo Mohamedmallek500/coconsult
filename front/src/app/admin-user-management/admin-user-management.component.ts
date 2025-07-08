@@ -26,7 +26,8 @@ export class AdminUserManagementComponent implements OnInit {
   pageSize = 10;
   totalPages = 0;
   filterRole = '';
-  filterSearch = '';
+  filterNom = ''; // New field for nom filter
+  filterPrenom = ''; // New field for prenom filter
   maladieSearch = '';
   selectedMaladies: number[] = [];
   selectedFile: File | null = null;
@@ -106,15 +107,20 @@ export class AdminUserManagementComponent implements OnInit {
 
   loadUsers(): void {
     this.loading = true;
-    this.userService.getAllUsers(this.currentPage, this.pageSize).subscribe({
-      next: (response: any) => {
+    // Use filterUsers if any filter is applied, otherwise use getAllUsers
+    const serviceCall = (this.filterNom || this.filterPrenom || this.filterRole)
+      ? this.userService.filterUsers(this.filterNom, this.filterPrenom, this.filterRole, this.currentPage, this.pageSize)
+      : this.userService.getAllUsers(this.currentPage, this.pageSize);
+
+    serviceCall.subscribe({
+      next: (response: { content: User[], totalPages: number }) => {
         this.users = response.content.map((user: any) => ({
           ...user,
           role: user.roles && user.roles.length > 0 ? user.roles[0] : 'patient',
           image: user.image
         }));
         this.totalPages = response.totalPages;
-        this.applyFilters();
+        this.filteredUsers = [...this.users]; // No client-side filtering needed
         this.loading = false;
       },
       error: (error) => {
@@ -197,20 +203,9 @@ export class AdminUserManagementComponent implements OnInit {
     return imagePath;
   }
 
-  applyFilters(): void {
-    this.filteredUsers = this.users.filter(user => {
-      const matchesRole = !this.filterRole || user.role === this.filterRole;
-      const matchesSearch = !this.filterSearch ||
-        user.nom?.toLowerCase().includes(this.filterSearch.toLowerCase()) ||
-        user.prenom?.toLowerCase().includes(this.filterSearch.toLowerCase()) ||
-        user.email?.toLowerCase().includes(this.filterSearch.toLowerCase()) ||
-        user.username?.toLowerCase().includes(this.filterSearch.toLowerCase());
-      return matchesRole && matchesSearch;
-    });
-  }
-
   onFilterChange(): void {
-    this.applyFilters();
+    this.currentPage = 0; // Reset to first page on filter change
+    this.loadUsers();
   }
 
   showAddForm(): void {
@@ -226,108 +221,107 @@ export class AdminUserManagementComponent implements OnInit {
     this.updateValidators('patient');
   }
 
-editUser(user: User): void {
-  this.showForm = true;
-  this.isEditing = true;
-  this.editingUserId = user.id || null;
-  this.selectedMaladies = user.dossierfile?.map(m => typeof m === 'number' ? m : m.id) || [];
+  editUser(user: User): void {
+    this.showForm = true;
+    this.isEditing = true;
+    this.editingUserId = user.id || null;
+    this.selectedMaladies = user.dossierfile?.map(m => typeof m === 'number' ? m : m.id) || [];
 
-  // Initialiser l'image preview si l'utilisateur a une image
-  this.imagePreview = user.image ? this.getImageUrl(user.image) : null;
+    this.imagePreview = user.image ? this.getImageUrl(user.image) : null;
 
-  this.userForm.patchValue({
-    username: user.username,
-    email: user.email,
-    nom: user.nom,
-    prenom: user.prenom,
-    numtel: user.numtel,
-    dateNaissance: user.dateNaissance,
-    adresse: user.adresse,
-    cin: user.cin,
-    role: user.role || 'patient',
-    numCnss: user.numCnss,
-    nomDocteurFamille: user.nomDocteurFamille,
-    mpsi: user.mpsi,
-    numDossier: user.numDossier,
-    dossierfile: this.selectedMaladies,
-    speciality: user.speciality,
-    bio: user.bio
-  });
+    this.userForm.patchValue({
+      username: user.username,
+      email: user.email,
+      nom: user.nom,
+      prenom: user.prenom,
+      numtel: user.numtel,
+      dateNaissance: user.dateNaissance,
+      adresse: user.adresse,
+      cin: user.cin,
+      role: user.role || 'patient',
+      numCnss: user.numCnss,
+      nomDocteurFamille: user.nomDocteurFamille,
+      mpsi: user.mpsi,
+      numDossier: user.numDossier,
+      dossierfile: this.selectedMaladies,
+      speciality: user.speciality,
+      bio: user.bio
+    });
 
-  this.updateValidators(user.role || 'patient');
-}
-
-cancelEdit(): void {
-  this.showForm = false;
-  this.isEditing = false;
-  this.editingUserId = null;
-  this.selectedMaladies = [];
-  this.selectedFile = null;
-  this.imagePreview = null;
-  this.imageError = null;
-  this.userForm.reset();
-  this.userForm.patchValue({ role: 'patient' });
-}
-saveUser(): void {
-  if (this.userForm.valid) {
-    this.loading = true;
-    const formData = this.userForm.value;
-
-    const userData: User = {
-      id: this.isEditing ? this.editingUserId || undefined : undefined,
-      username: formData.username,
-      email: formData.email,
-      password: formData.password?.trim() || undefined,
-      nom: formData.nom || null,
-      prenom: formData.prenom || null,
-      numtel: formData.numtel || null,
-      dateNaissance: formData.dateNaissance || null,
-      adresse: formData.adresse || null,
-      cin: formData.cin || null,
-      role: formData.role,
-      numCnss: formData.role === 'patient' ? formData.numCnss || null : null,
-      nomDocteurFamille: formData.role === 'patient' ? formData.nomDocteurFamille || null : null,
-      mpsi: formData.role === 'patient' ? formData.mpsi || null : null,
-      numDossier: formData.role === 'patient' ? formData.numDossier || null : null,
-      dossierfile: formData.role === 'patient' ? formData.dossierfile || [] : [],
-      speciality: formData.role === 'doctor' ? formData.speciality || null : null,
-      bio: formData.role === 'doctor' ? formData.bio || null : null,
-      isApproved: formData.role === 'doctor' ? false : undefined
-    };
-
-    if (this.isEditing && this.editingUserId) {
-      // Appel unique pour la mise à jour avec ou sans image
-      this.userService.updateUser(this.editingUserId, userData, this.selectedFile || undefined).subscribe({
-        next: (response: { message: string }) => {
-          this.showSuccess('Utilisateur mis à jour avec succès');
-          this.cancelEdit();
-          this.loadUsers();
-          this.loading = false;
-        },
-        error: (error) => {
-          this.showError(error.message || 'Erreur lors de la mise à jour');
-          this.loading = false;
-        }
-      });
-    } else {
-      this.userService.createUser(userData, this.selectedFile || undefined).subscribe({
-        next: (response: { message: string }) => {
-          this.showSuccess('Utilisateur créé avec succès');
-          this.cancelEdit();
-          this.loadUsers();
-          this.loading = false;
-        },
-        error: (error) => {
-          this.showError(error.message || 'Erreur lors de la création');
-          this.loading = false;
-        }
-      });
-    }
-  } else {
-    this.showError('Veuillez remplir tous les champs requis correctement');
-    this.userForm.markAllAsTouched();
+    this.updateValidators(user.role || 'patient');
   }
-}
+
+  cancelEdit(): void {
+    this.showForm = false;
+    this.isEditing = false;
+    this.editingUserId = null;
+    this.selectedMaladies = [];
+    this.selectedFile = null;
+    this.imagePreview = null;
+    this.imageError = null;
+    this.userForm.reset();
+    this.userForm.patchValue({ role: 'patient' });
+  }
+
+  saveUser(): void {
+    if (this.userForm.valid) {
+      this.loading = true;
+      const formData = this.userForm.value;
+
+      const userData: User = {
+        id: this.isEditing ? this.editingUserId || undefined : undefined,
+        username: formData.username,
+        email: formData.email,
+        password: formData.password?.trim() || undefined,
+        nom: formData.nom || null,
+        prenom: formData.prenom || null,
+        numtel: formData.numtel || null,
+        dateNaissance: formData.dateNaissance || null,
+        adresse: formData.adresse || null,
+        cin: formData.cin || null,
+        role: formData.role,
+        numCnss: formData.role === 'patient' ? formData.numCnss || null : null,
+        nomDocteurFamille: formData.role === 'patient' ? formData.nomDocteurFamille || null : null,
+        mpsi: formData.role === 'patient' ? formData.mpsi || null : null,
+        numDossier: formData.role === 'patient' ? formData.numDossier || null : null,
+        dossierfile: formData.role === 'patient' ? formData.dossierfile || [] : [],
+        speciality: formData.role === 'doctor' ? formData.speciality || null : null,
+        bio: formData.role === 'doctor' ? formData.bio || null : null,
+        isApproved: formData.role === 'doctor' ? false : undefined
+      };
+
+      if (this.isEditing && this.editingUserId) {
+        this.userService.updateUser(this.editingUserId, userData, this.selectedFile || undefined).subscribe({
+          next: (response: { message: string }) => {
+            this.showSuccess('Utilisateur mis à jour avec succès');
+            this.cancelEdit();
+            this.loadUsers();
+            this.loading = false;
+          },
+          error: (error) => {
+            this.showError(error.message || 'Erreur lors de la mise à jour');
+            this.loading = false;
+          }
+        });
+      } else {
+        this.userService.createUser(userData, this.selectedFile || undefined).subscribe({
+          next: (response: { message: string }) => {
+            this.showSuccess('Utilisateur créé avec succès');
+            this.cancelEdit();
+            this.loadUsers();
+            this.loading = false;
+          },
+          error: (error) => {
+            this.showError(error.message || 'Erreur lors de la création');
+            this.loading = false;
+          }
+        });
+      }
+    } else {
+      this.showError('Veuillez remplir tous les champs requis correctement');
+      this.userForm.markAllAsTouched();
+    }
+  }
 
   deleteUser(user: User): void {
     if (confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur ${user.nom} ${user.prenom} ?`)) {
