@@ -16,6 +16,7 @@ import { AppointmentComponent } from './appointment/appointment.component';
 import { ContactComponent } from './contact/contact.component';
 import { LoginComponent } from './login/login.component';
 import { AdminUserManagementComponent } from './admin-user-management/admin-user-management.component';
+import { AbcComponent } from './abc/abc.component';
 
 @NgModule({
   declarations: [
@@ -30,6 +31,7 @@ import { AdminUserManagementComponent } from './admin-user-management/admin-user
     ContactComponent,
     LoginComponent,
     AdminUserManagementComponent,
+    AbcComponent,
     
   ],
   imports: [
