@@ -16,11 +16,16 @@
                 </li>
 
                 <li class="nav-item" *ngIf="isAuthenticated">
+                    <a class="nav-link" routerLink="/liste-users">Users</a>
+                </li>
+
+                <li class="nav-item" *ngIf="isAuthenticated">
                     <a class="nav-link" routerLink="/about">About</a>
                 </li>
 
                 <li class="nav-item" *ngIf="isAuthenticated">
-                    <a class="nav-link" routerLink="/aaa">Timeline</a>
+                    <a class="nav-link" href="#reviews">Timeline</a>
+
                 </li>
 
                 <a class="navbar-brand d-none d-lg-block" routerLink="/">

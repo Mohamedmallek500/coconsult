@@ -45,56 +45,51 @@
       {{ errorMessage }}
     </div>
 
-    <!-- Search Form -->
-<!-- Search Form -->
-<form [formGroup]="searchForm" class="mb-4">
-  <div class="row g-3 align-items-end">
-    <div class="col-md-3">
-      <label for="nom" class="form-label">Last Name</label>
-      <input
-        type="text"
-        class="form-control"
-        id="nom"
-        placeholder="e.g., Smith"
-        formControlName="nom"
-      />
-    </div>
-
-    <div class="col-md-3">
-      <label for="prenom" class="form-label">First Name</label>
-      <input
-        type="text"
-        class="form-control"
-        id="prenom"
-        placeholder="e.g., John"
-        formControlName="prenom"
-      />
-    </div>
-
-<div class="col-md-3">
-  <label for="speciality" class="form-label">Speciality</label>
-  <select 
-    class="form-select" 
-    id="speciality" 
-    formControlName="speciality"
-  >
-    <option value="">All Specialities</option>
-    <option *ngFor="let spec of specialities" [value]="spec">
-      {{ spec }}
-    </option>
-  </select>
-</div>
-
-    <div class="col-md-3">
-      <label for="adresse" class="form-label">City</label>
-      <select class="form-select" id="adresse" formControlName="adresse">
-        <option value="">Select City</option>
-        <option *ngFor="let city of gouvernorats" [value]="city">{{ city }}</option>
-      </select>
-    </div>
-  </div>
-</form>
-
+    <!-- Search Form (unchanged) -->
+    <form [formGroup]="searchForm" class="mb-4">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label for="nom" class="form-label">Last Name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="nom"
+            placeholder="e.g., Smith"
+            formControlName="nom"
+          />
+        </div>
+        <div class="col-md-3">
+          <label for="prenom" class="form-label">First Name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="prenom"
+            placeholder="e.g., John"
+            formControlName="prenom"
+          />
+        </div>
+        <div class="col-md-3">
+          <label for="speciality" class="form-label">Speciality</label>
+          <select 
+            class="form-select" 
+            id="speciality" 
+            formControlName="speciality"
+          >
+            <option value="">All Specialities</option>
+            <option *ngFor="let spec of specialities" [value]="spec">
+              {{ spec }}
+            </option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="adresse" class="form-label">City</label>
+          <select class="form-select" id="adresse" formControlName="adresse">
+            <option value="">Select City</option>
+            <option *ngFor="let city of gouvernorats" [value]="city">{{ city }}</option>
+          </select>
+        </div>
+      </div>
+    </form>
 
     <!-- Loading Spinner -->
     <div *ngIf="isLoading" class="text-center">
@@ -103,30 +98,26 @@
       </div>
     </div>
 
-    <!-- Doctor List -->
-    <div class="row" *ngIf="!isLoading">
-      <div class="col-12">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Speciality</th>
-              <th>Address</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let doctor of doctors">
-              <td>{{ doctor.nom }} {{ doctor.prenom }}</td>
-              <td>{{ doctor.email }}</td>
-              <td>{{ doctor.speciality }}</td>
-              <td>{{ doctor.adresse }}</td>
-            </tr>
-            <tr *ngIf="doctors.length === 0">
-              <td colspan="4" class="text-center">No doctors found</td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- Doctor Cards -->
+    <div class="row g-4" *ngIf="!isLoading">
+      <div class="col-md-6 col-lg-4" *ngFor="let doctor of doctors">
+        <div class="card h-100 shadow-sm doctor-card">
+          <img 
+           [src]="getImageUrl(doctor.image)" 
+            class="card-img-top doctor-img" 
+            alt="{{ doctor.nom }} {{ doctor.prenom }}"
+          >
+          <div class="card-body">
+            <h5 class="card-title">{{ doctor.nom }} {{ doctor.prenom }}</h5>
+            <p class="card-text text-primary mb-1">{{ doctor.speciality }}</p>
+            <p class="card-text"><i class="bi-geo-alt me-2"></i>{{ doctor.adresse }}</p>
+            <p class="card-text"><i class="bi-envelope me-2"></i>{{ doctor.email }}</p>
+            <a href="#appointment" class="btn btn-primary mt-2">Book Appointment</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 text-center" *ngIf="doctors.length === 0">
+        <p class="text-muted">No doctors found</p>
       </div>
     </div>
   </div>

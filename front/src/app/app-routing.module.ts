@@ -25,7 +25,7 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
     {
-    path: 'aaa',
+    path: 'liste-users',
     pathMatch: 'full',
     component: AdminUserManagementComponent,
     canActivate: [AuthGuard]

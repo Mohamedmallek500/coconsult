@@ -46,6 +46,16 @@ gouvernorats: string[] = [
     });
   }
 
+  getImageUrl(imagePath: string | undefined): string {
+    if (!imagePath) return 'assets/images/default-profile.png';
+    const parts = imagePath.split('assets\\images\\');
+    if (parts.length > 1) {
+      return `assets/images/${parts[1]}`;
+    }
+    return imagePath;
+  }
+  
+
     loadSpecialities(): void {
     this.userService.getAllSpecialities().subscribe({
       next: (specialities) => {

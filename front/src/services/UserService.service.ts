@@ -120,7 +120,7 @@ updateUserImage(id: number, image: File): Observable<{ message: string }> {
     speciality?: string,
     adresse?: string,
     page: number = 0,
-    size: number = 10
+    size: number = 12
   ): Observable<User[]> {
     let params = new HttpParams()
       .set('page', page.toString())
