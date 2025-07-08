@@ -1,0 +1,29 @@
+.section {
+  padding: 60px 0;
+}
+
+.form-label {
+  font-weight: 500;
+}
+
+.form-control {
+  margin-bottom: 10px;
+}
+
+.table {
+  width: 100%;
+}
+
+.spinner-border {
+  margin: 20px auto;
+}
+
+.alert {
+  margin-bottom: 20px;
+}
+
+/* Ajout utile pour gérer le spacing proprement */
+form .form-control,
+form .form-select {
+  margin-bottom: 0; /* enlever l'espace si g-3 est utilisé */
+}

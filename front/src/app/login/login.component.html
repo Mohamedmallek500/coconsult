@@ -1,0 +1,205 @@
+<section class="vh-100 login-section" style="background-color: #f8f9fa;">
+  <div class="container-fluid h-100">
+    <div class="row h-100">
+      <div class="col-sm-6 text-black d-flex align-items-center justify-content-center">
+        <div class="px-4" style="width: 100%; max-width: 500px; margin-top: -20px;">
+          <div class="text-center mb-4">
+            <i class="fas fa-heartbeat fa-3x mb-3" style="color: #0d6efd;"></i>
+            <h1 class="h3 fw-bold" style="color: #0d6efd;">Medic Care</h1>
+          </div>
+
+          <!-- Formulaire de Connexion -->
+          <div class="card shadow-sm p-4" style="border-radius: 15px; border: none;" *ngIf="showLoginForm">
+            <form (ngSubmit)="login()">
+              <h3 class="fw-bold mb-3 text-center" style="color: #0d6efd;">Connexion</h3>
+
+              <div class="form-floating mb-3">
+                <input type="email" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.email"
+                  name="email" required />
+                <label>Email</label>
+              </div>
+
+              <div class="form-floating mb-3">
+                <input type="password" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.password"
+                  name="password" required />
+                <label>Mot de passe</label>
+              </div>
+
+              <div class="d-flex justify-content-between mb-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="rememberMe" />
+                  <label class="form-check-label" for="rememberMe">Se souvenir de moi</label>
+                </div>
+                <a href="#!" class="text-primary" style="color: #0d6efd !important;">Mot de passe oublié?</a>
+              </div>
+
+              <button type="submit" class="btn btn-lg btn-block mb-3 text-white"
+                style="background-color: #0d6efd; width: 100%; border-radius: 10px;" [disabled]="isLoading">
+                {{ isLoading ? 'Connexion...' : 'Se connecter' }}
+              </button>
+
+              <p class="text-center mb-0">Pas encore de compte?
+                <a href="#" class="fw-bold" style="color: #0d6efd;" (click)="toggleForm($event)">S'inscrire</a>
+              </p>
+
+              <p class="text-center text-danger mt-3" *ngIf="errorMessage">{{ errorMessage }}</p>
+            </form>
+          </div>
+
+          <!-- Formulaire d'Inscription -->
+          <div class="card shadow-sm p-4" style="border-radius: 15px; border: none;" *ngIf="!showLoginForm">
+            <form (ngSubmit)="onRegister()">
+              <h3 class="fw-bold mb-3 text-center" style="color: #0d6efd;">Inscription</h3>
+
+              <!-- Sélection du type d'utilisateur -->
+              <div class="mb-4 text-center">
+                <div class="btn-group w-100" role="group">
+                  <button type="button" class="btn" [class.btn-primary]="user.role === 'patient'"
+                    [class.btn-outline-primary]="user.role !== 'patient'" (click)="user.role = 'patient'">
+                    Patient
+                  </button>
+                  <button type="button" class="btn" [class.btn-primary]="user.role === 'doctor'"
+                    [class.btn-outline-primary]="user.role !== 'doctor'" (click)="user.role = 'doctor'">
+                    Médecin
+                  </button>
+                </div>
+              </div>
+
+              <!-- Champs communs -->
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.username"
+                  name="username" required />
+                <label>Nom d'utilisateur</label>
+              </div>
+
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.nom"
+                  name="nom" />
+                <label>Nom</label>
+              </div>
+
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.prenom"
+                  name="prenom" />
+                <label>Prénom</label>
+              </div>
+
+              <div class="form-floating mb-3">
+                <input type="email" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.email"
+                  name="email" required />
+                <label>Adresse Email</label>
+              </div>
+
+              <div class="form-floating mb-3">
+                <input type="password" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.password"
+                  name="password" required />
+                <label>Mot de passe</label>
+              </div>
+
+              <div class="form-floating mb-3">
+                <input type="tel" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.numtel"
+                  name="numtel" />
+                <label>Téléphone</label>
+              </div>
+
+              <div class="form-floating mb-3">
+                <input type="date" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.dateNaissance"
+                  name="dateNaissance" />
+                <label>Date de naissance</label>
+              </div>
+
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.adresse"
+                  name="adresse" />
+                <label>Adresse</label>
+              </div>
+
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.cin"
+                  name="cin" />
+                <label>CIN</label>
+              </div>
+
+              <!-- Champs spécifiques au patient -->
+              <div *ngIf="user.role === 'patient'">
+                <div class="form-floating mb-3">
+                  <input type="text" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.numCnss"
+                    name="numCnss" required />
+                  <label>Numéro CNSS</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                  <input type="text" class="form-control form-control-lg" placeholder=" "
+                    [(ngModel)]="user.nomDocteurFamille" name="nomDocteurFamille" />
+                  <label>Nom du médecin de famille</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                  <input type="text" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.mpsi"
+                    name="mpsi" />
+                  <label>MPSI</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                  <input type="text" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.numDossier"
+                    name="numDossier" required />
+                  <label>Numéro de dossier</label>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Sélectionnez les maladies</label>
+                  <div class="form-check" *ngFor="let maladie of maladies">
+                    <input class="form-check-input" type="checkbox" [value]="maladie.id"
+                      [checked]="(user.dossierfile ?? []).includes(maladie.id)"
+                      (change)="toggleMaladieSelection(maladie.id)" />
+                    <label class="form-check-label">
+                      {{ maladie.name }}
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Champs spécifiques au médecin -->
+              <div *ngIf="user.role === 'doctor'">
+                <div class="form-floating mb-3">
+                  <input type="text" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.speciality"
+                    name="speciality" required />
+                  <label>Spécialité médicale</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                  <textarea class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.bio" name="bio"
+                    required style="height: 100px;"></textarea>
+                  <label>Bio</label>
+                </div>
+              </div>
+
+              <!-- Champ pour l'upload d'image -->
+              <div class="mb-3">
+                <label class="form-label">Photo de profil (JPEG/PNG)</label>
+                <input type="file" class="form-control" accept="image/jpeg,image/png" (change)="onFileSelected($event)" />
+              </div>
+
+              <button type="submit" class="btn btn-lg btn-block mb-3 text-white"
+                style="background-color: #0d6efd; width: 100%; border-radius: 10px;" [disabled]="isLoading">
+                {{ isLoading ? 'Inscription...' : 'S\'inscrire' }}
+              </button>
+
+              <p class="text-center mb-0">Déjà un compte?
+                <a href="#" class="fw-bold" style="color: #0d6efd;" (click)="toggleForm($event)">Se connecter</a>
+              </p>
+
+              <p class="text-center text-danger mt-3" *ngIf="errorMessage">{{ errorMessage }}</p>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-6 px-0 d-none d-sm-block h-100">
+        <img
+          src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
+          alt="Medical professionals" class="w-100 h-100" style="object-fit: cover; object-position: center;">
+      </div>
+    </div>
+  </div>
+</section>
