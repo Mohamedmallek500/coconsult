@@ -1,54 +1,121 @@
 <nav class="navbar navbar-expand-lg bg-light fixed-top shadow-lg">
-    <div class="container">
-        <a class="navbar-brand mx-auto d-lg-none" routerLink="/">
-            Medic Care
-            <strong class="d-block">Health Specialist</strong>
+  <div class="container">
+    <!-- Mobile logo for unauthenticated users -->
+    <a class="navbar-brand mx-auto d-lg-none" routerLink="/">
+      Medic Care
+      <strong class="d-block">Health Specialist</strong>
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+
+      <!-- Default Navbar (Unauthenticated) -->
+      <ul class="navbar-nav mx-auto" *ngIf="!isAuthenticated">
+        <a class="navbar-brand d-none d-lg-block" routerLink="/">
+          Medic Care
+          <strong class="d-block">Health Specialist</strong>
         </a>
+      </ul>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+      <!-- Admin Navbar -->
+      <ul class="navbar-nav mx-auto" *ngIf="isAuthenticated && userRole === 'admin'">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/home">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/liste-users">Users</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/about">About</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#reviews">Timeline</a>
+        </li>
+        <a class="navbar-brand d-none d-lg-block">
+          Medic Care
+          <strong class="d-block">Health Specialist</strong>
+        </a>
+        <li class="nav-item">
+          <a class="nav-link" href="#reviews">Testimonials</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#booking">Booking</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#contact">Contact</a>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link btn btn-link" (click)="logout()">Logout</button>
+        </li>
+      </ul>
 
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mx-auto">
-                <li class="nav-item" *ngIf="isAuthenticated">
-                    <a class="nav-link" routerLink="/home">Home</a>
-                </li>
+      <!-- Doctor Navbar -->
+      <ul class="navbar-nav mx-auto" *ngIf="isAuthenticated && userRole === 'doctor'">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/home">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/liste-users">doctor</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/about">About</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#reviews">Timeline</a>
+        </li>
+        <a class="navbar-brand d-none d-lg-block">
+          Medic Care
+          <strong class="d-block">Health Specialist</strong>
+        </a>
+        <li class="nav-item">
+          <a class="nav-link" href="#reviews">Testimonials</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#booking">Booking</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#contact">Contact</a>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link btn btn-link" (click)="logout()">Logout</button>
+        </li>
+      </ul>
 
-                <li class="nav-item" *ngIf="isAuthenticated">
-                    <a class="nav-link" routerLink="/liste-users">Users</a>
-                </li>
-
-                <li class="nav-item" *ngIf="isAuthenticated">
-                    <a class="nav-link" routerLink="/about">About</a>
-                </li>
-
-                <li class="nav-item" *ngIf="isAuthenticated">
-                    <a class="nav-link" href="#reviews">Timeline</a>
-
-                </li>
-
-                <a class="navbar-brand d-none d-lg-block" routerLink="/">
-                    Medic Care
-                    <strong class="d-block">Health Specialist</strong>
-                </a>
-
-                <li class="nav-item" *ngIf="isAuthenticated">
-                    <a class="nav-link" href="#reviews">Testimonials</a>
-                </li>
-
-                <li class="nav-item" *ngIf="isAuthenticated">
-                    <a class="nav-link" href="#booking">Booking</a>
-                </li>
-
-                <li class="nav-item" *ngIf="isAuthenticated">
-                    <a class="nav-link" href="#contact">Contact</a>
-                </li>
-
-                <li class="nav-item" *ngIf="isAuthenticated">
-                    <button class="nav-link btn btn-link" (click)="logout()">Logout</button>
-                </li>
-            </ul>
-        </div>
+      <!-- Patient Navbar -->
+      <ul class="navbar-nav mx-auto" *ngIf="isAuthenticated && userRole === 'patient'">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/home">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/liste-users">patient</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/about">About</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#reviews">Timeline</a>
+        </li>
+        <a class="navbar-brand d-none d-lg-block" >
+          Medic Care
+          <strong class="d-block">Health Specialist</strong>
+        </a>
+        <li class="nav-item">
+          <a class="nav-link" href="#reviews">Testimonials</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#booking">Booking</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#contact">Contact</a>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link btn btn-link" (click)="logout()">Logout</button>
+        </li>
+      </ul>
     </div>
+  </div>
 </nav>

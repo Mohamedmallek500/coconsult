@@ -143,4 +143,13 @@ public class AppointmentServiceImpl implements AppointmentService {
                 appointment.getOrdonnance() != null ? appointment.getOrdonnance().getId() : null
         );
     }
+
+    @Override
+    public List<AppointmentDTO> getAppointmentsByDoctorId(Long doctorId) {
+        List<Appointment> appointments = appointmentRepository.findByDoctorId(doctorId);
+        return appointments.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
 }

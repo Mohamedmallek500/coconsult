@@ -11,19 +11,35 @@ export class AuthServiceService {
   private baseUrl = 'http://localhost:9090/api/auth';
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
+  private userNameSubject = new BehaviorSubject<string | null>(localStorage.getItem('user_name'));
+  private userRoleSubject = new BehaviorSubject<string | null>(localStorage.getItem('user_role'));
+  private userIdSubject = new BehaviorSubject<number | null>(Number(localStorage.getItem('user_id')) || null);
 
   constructor(private http: HttpClient) {
-    // Check if user is already authenticated (e.g., on page refresh)
     this.checkInitialAuthStatus();
   }
 
   login(email: string, password: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/signin`, { email, password }, {
-      withCredentials: true
-    }).pipe(
-      tap(() => {
+    return this.http.post(`${this.baseUrl}/signin`, { email, password }, { withCredentials: true }).pipe(
+      tap((response: any) => {
         this.isAuthenticatedSubject.next(true);
-      })
+        const userName = response?.username;
+        const userRole = response?.roles?.[0];
+        const userId = response?.id;
+        if (userName) {
+          localStorage.setItem('user_name', userName);
+          this.userNameSubject.next(userName);
+        }
+        if (userRole) {
+          localStorage.setItem('user_role', userRole);
+          this.userRoleSubject.next(userRole);
+        }
+        if (userId) {
+          localStorage.setItem('user_id', userId.toString());
+          this.userIdSubject.next(userId);
+        }
+      }),
+      catchError(error => throwError(() => new Error(error.error?.message || 'Login failed')))
     );
   }
 
@@ -52,10 +68,9 @@ export class AuthServiceService {
       formData.append('image', image);
     }
 
-    return this.http.post(`${this.baseUrl}/signup`, formData, { withCredentials: true })
-      .pipe(
-        catchError(error => throwError(() => new Error(error.error?.message || 'Échec de l\'inscription')))
-      );
+    return this.http.post(`${this.baseUrl}/signup`, formData, { withCredentials: true }).pipe(
+      catchError(error => throwError(() => new Error(error.error?.message || 'Patient registration failed')))
+    );
   }
 
   registerDoctor(user: User, image: File | null = null): Observable<any> {
@@ -80,20 +95,24 @@ export class AuthServiceService {
       formData.append('image', image);
     }
 
-    return this.http.post(`${this.baseUrl}/signup`, formData, { withCredentials: true })
-      .pipe(
-        catchError(error => throwError(() => new Error(error.error?.message || 'Échec de l\'inscription')))
-      );
+    return this.http.post(`${this.baseUrl}/signup`, formData, { withCredentials: true }).pipe(
+      catchError(error => throwError(() => new Error(error.error?.message || 'Doctor registration failed')))
+    );
   }
 
   logout(): Observable<any> {
-    return this.http.post(`${this.baseUrl}/signout`, {}, { withCredentials: true })
-      .pipe(
-        tap(() => {
-          this.isAuthenticatedSubject.next(false);
-        }),
-        catchError(error => throwError(() => new Error(error.error?.message || 'Échec de la déconnexion')))
-      );
+    return this.http.post(`${this.baseUrl}/signout`, {}, { withCredentials: true }).pipe(
+      tap(() => {
+        this.isAuthenticatedSubject.next(false);
+        this.userNameSubject.next(null);
+        this.userRoleSubject.next(null);
+        this.userIdSubject.next(null);
+        localStorage.removeItem('user_name');
+        localStorage.removeItem('user_role');
+        localStorage.removeItem('user_id');
+      }),
+      catchError(error => throwError(() => new Error(error.error?.message || 'Logout failed')))
+    );
   }
 
   isAuthenticated(): boolean {
@@ -101,8 +120,22 @@ export class AuthServiceService {
   }
 
   private checkInitialAuthStatus(): void {
-    // You might want to check with backend or local storage
-    // For simplicity, assume not authenticated initially
-    this.isAuthenticatedSubject.next(false);
+    const isAuthenticated = !!localStorage.getItem('user_name') && !!localStorage.getItem('user_role');
+    this.isAuthenticatedSubject.next(isAuthenticated);
   }
+
+  get userName$(): Observable<string | null> {
+    return this.userNameSubject.asObservable();
+  }
+
+  get userRole$(): Observable<string | null> {
+    return this.userRoleSubject.asObservable();
+  }
+
+  get userId$(): Observable<number | null> {
+    return this.userIdSubject.asObservable();
+  }
+
+
+
 }

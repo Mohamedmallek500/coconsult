@@ -12,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/appointments")
+@CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
 public class AppointmentController {
 
     @Autowired
@@ -46,4 +47,11 @@ public class AppointmentController {
         appointmentService.deleteAppointment(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/doctor/{doctorId}")
+    public ResponseEntity<List<AppointmentDTO>> getAppointmentsByDoctorId(@PathVariable Long doctorId) {
+        List<AppointmentDTO> appointments = appointmentService.getAppointmentsByDoctorId(doctorId);
+        return ResponseEntity.ok(appointments);
+    }
+
 }

@@ -1,6 +1,8 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { FullCalendarModule } from '@fullcalendar/angular';
+
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -16,6 +18,7 @@ import { AppointmentComponent } from './appointment/appointment.component';
 import { ContactComponent } from './contact/contact.component';
 import { LoginComponent } from './login/login.component';
 import { AdminUserManagementComponent } from './admin-user-management/admin-user-management.component';
+import { AppointmentBookingComponent } from './appointment-booking/appointment-booking.component';
 
 @NgModule({
   declarations: [
@@ -30,6 +33,7 @@ import { AdminUserManagementComponent } from './admin-user-management/admin-user
     ContactComponent,
     LoginComponent,
     AdminUserManagementComponent,
+    AppointmentBookingComponent,
     
   ],
   imports: [
@@ -39,6 +43,7 @@ import { AdminUserManagementComponent } from './admin-user-management/admin-user
     ReactiveFormsModule,
     CommonModule,
     HttpClientModule,
+    FullCalendarModule
     
 
   ],
