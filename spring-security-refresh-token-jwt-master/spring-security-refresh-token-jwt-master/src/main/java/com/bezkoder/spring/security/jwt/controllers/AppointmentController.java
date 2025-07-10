@@ -5,7 +5,6 @@ import com.bezkoder.spring.security.jwt.security.services.AppointmentService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +21,12 @@ public class AppointmentController {
     public ResponseEntity<AppointmentDTO> createAppointment(@Valid @RequestBody AppointmentDTO appointmentDTO) {
         AppointmentDTO createdAppointment = appointmentService.createAppointment(appointmentDTO);
         return ResponseEntity.ok(createdAppointment);
+    }
+
+    @PostMapping("/{id}/confirm")
+    public ResponseEntity<AppointmentDTO> confirmAppointment(@PathVariable Long id) {
+        AppointmentDTO confirmedAppointment = appointmentService.confirmAppointment(id);
+        return ResponseEntity.ok(confirmedAppointment);
     }
 
     @GetMapping("/{id}")
@@ -53,5 +58,4 @@ public class AppointmentController {
         List<AppointmentDTO> appointments = appointmentService.getAppointmentsByDoctorId(doctorId);
         return ResponseEntity.ok(appointments);
     }
-
 }

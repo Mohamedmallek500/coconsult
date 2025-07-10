@@ -3,9 +3,8 @@ package com.bezkoder.spring.security.jwt.models;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -14,7 +13,6 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class Appointment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,7 +31,23 @@ public class Appointment {
     @NotNull
     private LocalDateTime date;
 
+    @Enumerated(EnumType.STRING)
+    @NotNull
+    private AppointmentStatus status = AppointmentStatus.PENDING;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ordonnance_id")
     private Ordonnance ordonnance;
+
+    public Appointment(Doctor doctor, Patient patient, LocalDateTime date) {
+        this.doctor = doctor;
+        this.patient = patient;
+        this.date = date;
+        this.status = AppointmentStatus.PENDING;
+    }
+
+    public enum AppointmentStatus {
+        PENDING,
+        CONFIRMED
+    }
 }
