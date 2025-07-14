@@ -50,9 +50,14 @@ export class AppointmentBookingComponent implements OnInit {
           endTime: '12:00'
         },
         {
-          daysOfWeek: [1, 2, 3, 4, 5],
+          daysOfWeek: [1, 2, 3, 4, 5], // Monday - Friday
           startTime: '14:00',
           endTime: '17:00'
+        },
+        {
+          daysOfWeek: [6], // Saturday
+          startTime: '08:00',
+          endTime: '12:00'
         }
       ],
       events: [],
@@ -65,6 +70,11 @@ export class AppointmentBookingComponent implements OnInit {
         hour: '2-digit',
         minute: '2-digit',
         hour12: false
+      },
+      dayCellClassNames: (arg) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Normalize to start of today
+        return arg.date < today ? ['fc-day-past'] : [];
       }
     };
   }
@@ -170,14 +180,22 @@ export class AppointmentBookingComponent implements OnInit {
     const start = new Date(info.dateStr);
     const end = new Date(start.getTime() + 30 * 60 * 1000);
     const isBusinessHour = this.isWithinBusinessHours(start);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize to start of today for comparison
 
     console.log('Date clicked:', { start, end, isBusinessHour });
+
+    if (start < today) {
+      this.errorMessage = 'Cannot book appointments for past dates';
+      this.selectedSlot = null;
+      return;
+    }
 
     if (isBusinessHour && !this.isSlotBooked(start)) {
       this.selectedSlot = { start, end };
       this.errorMessage = null;
     } else {
-      this.errorMessage = 'Selected time is outside doctor\'s working hours or already booked';
+      this.errorMessage = 'Selected time is outside doctor\'s working hours';
       this.selectedSlot = null;
     }
   }
@@ -192,11 +210,18 @@ export class AppointmentBookingComponent implements OnInit {
     const minutes = date.getMinutes();
     const day = date.getDay();
     
+    // Sunday (day 0) is not bookable
+    if (day === 0) {
+      return false;
+    }
+    
+    // Monday to Friday: 8:00 AM - 12:00 PM and 2:00 PM - 5:00 PM
+    // Saturday (day 6): 8:00 AM - 12:00 PM only
     return (
-      day >= 1 &&
-      day <= 5 &&
-      ((hours >= 8 && hours < 12) || (hours >= 14 && hours < 17)) &&
-      minutes % 30 === 0
+      ((day >= 1 && day <= 5) && // Monday - Friday
+        ((hours >= 8 && hours < 12) || (hours >= 14 && hours < 17)) ||
+      (day === 6 && hours >= 8 && hours < 12)) && // Saturday
+      minutes % 30 === 0 // Only allow slots starting at 0 or 30 minutes
     );
   }
 
@@ -209,50 +234,57 @@ export class AppointmentBookingComponent implements OnInit {
     });
   }
 
-bookAppointment(): void {
-  console.log('Booking attempt:', {
-    selectedSlot: this.selectedSlot,
-    doctorId: this.doctor?.id,
-    patientId: this.currentUser?.id
-  });
+  bookAppointment(): void {
+    console.log('Booking attempt:', {
+      selectedSlot: this.selectedSlot,
+      doctorId: this.doctor?.id,
+      patientId: this.currentUser?.id
+    });
 
-  if (!this.selectedSlot || !this.doctor?.id || !this.currentUser?.id) {
-    this.errorMessage = 'Please select a valid slot and ensure you are logged in';
-    this.isBooking = false;
-    return;
+    if (!this.selectedSlot || !this.doctor?.id || !this.currentUser?.id) {
+      this.errorMessage = 'Please select a valid slot and ensure you are logged in';
+      this.isBooking = false;
+      return;
+    }
+
+    this.isBooking = true;
+    this.errorMessage = null;
+
+    const formattedDate = this.formatDateForBackend(this.selectedSlot.start);
+    const appointmentData: AppointmentRequest = {
+      doctorId: this.doctor.id,
+      patientId: this.currentUser.id,
+      date: formattedDate
+    };
+
+    console.log('Sending appointment data:', JSON.stringify(appointmentData, null, 2));
+
+    this.appointmentService.createAppointment(appointmentData).subscribe({
+      next: (response) => {
+        console.log('Booking response:', response);
+        this.handleBookingSuccess(response.body);
+      },
+      error: (err) => {
+        console.error('Booking error:', err);
+        this.handleBookingError(err);
+        if (err.status === 401) {
+          this.errorMessage = 'Session expired. Please log in again.';
+          this.router.navigate(['/login']);
+        }
+      }
+    });
   }
 
-  this.isBooking = true;
-  this.errorMessage = null;
-
-  const formattedDate = this.formatDateForBackend(this.selectedSlot.start);
-  const appointmentData: AppointmentRequest = {
-    doctorId: this.doctor.id,
-    patientId: this.currentUser.id,
-    date: formattedDate
-  };
-
-  console.log('Sending appointment data:', JSON.stringify(appointmentData, null, 2));
-
-  this.appointmentService.createAppointment(appointmentData).subscribe({
-    next: (response) => {
-      console.log('Booking response:', response);
-      this.handleBookingSuccess(response.body);
-    },
-    error: (err) => {
-      console.error('Booking error:', err);
-      this.handleBookingError(err);
-      if (err.status === 401) {
-        this.errorMessage = 'Session expired. Please log in again.';
-        this.router.navigate(['/login']);
-      }
-    }
-  });
-}
-
   private formatDateForBackend(date: Date): string {
-    // Use ISO 8601 format with milliseconds to match backend expectations
-    return date.toISOString(); // e.g., "2025-07-10T10:00:00.000Z"
+    // Format the date to preserve local time (e.g., 2025-07-10T08:00:00)
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
   }
 
   private handleBookingSuccess(appointment: any): void {
