@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -48,20 +47,38 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new RuntimeException("User is not a Patient");
         }
         Patient patient = (Patient) patientUser;
-        // Check for overlapping appointments
+
         if (appointmentRepository.existsByDoctorAndDate(doctor, appointmentDTO.getDate())) {
             throw new RuntimeException("Doctor already has an appointment at this time");
         }
-        // Create an empty Ordonnance
-        Ordonnance ordonnance = new Ordonnance(patient, doctor, new HashSet<>());
+
+        Appointment appointment = new Appointment(doctor, patient, appointmentDTO.getDate());
+        // Status is automatically set to PENDING in the Appointment constructor
+        appointment = appointmentRepository.save(appointment);
+        return convertToDTO(appointment);
+    }
+
+    @Override
+    @Transactional
+    public AppointmentDTO confirmAppointment(Long id) {
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        if (appointment.getStatus() == Appointment.AppointmentStatus.CONFIRMED) {
+            throw new RuntimeException("Appointment is already confirmed");
+        }
+
+        if (!appointment.getDoctor().isApproved()) {
+            throw new RuntimeException("Doctor is not approved");
+        }
+
+        Ordonnance ordonnance = new Ordonnance(appointment.getPatient(), appointment.getDoctor(), new HashSet<>());
         ordonnance = ordonnanceRepository.save(ordonnance);
-        // Create Appointment and link Ordonnance
-        Appointment appointment = new Appointment();
-        appointment.setDoctor(doctor);
-        appointment.setPatient(patient);
-        appointment.setDate(appointmentDTO.getDate());
+
+        appointment.setStatus(Appointment.AppointmentStatus.CONFIRMED);
         appointment.setOrdonnance(ordonnance);
         appointment = appointmentRepository.save(appointment);
+
         return convertToDTO(appointment);
     }
 
@@ -99,25 +116,26 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new RuntimeException("User is not a Patient");
         }
         Patient patient = (Patient) patientUser;
-        // Check for overlapping appointments (excluding current appointment)
+
         if (appointmentRepository.existsByDoctorAndDateAndIdNot(doctor, appointmentDTO.getDate(), id)) {
             throw new RuntimeException("Doctor already has an appointment at this time");
         }
-        // Ensure an Ordonnance exists
-        Ordonnance ordonnance = appointment.getOrdonnance();
-        if (ordonnance == null) {
-            ordonnance = new Ordonnance(patient, doctor, new HashSet<>());
+
+        appointment.setDoctor(doctor);
+        appointment.setPatient(patient);
+        appointment.setDate(appointmentDTO.getDate());
+
+        if (appointment.getStatus() == Appointment.AppointmentStatus.CONFIRMED && appointment.getOrdonnance() == null) {
+            Ordonnance ordonnance = new Ordonnance(patient, doctor, new HashSet<>());
             ordonnance = ordonnanceRepository.save(ordonnance);
             appointment.setOrdonnance(ordonnance);
-        } else {
-            // Update Ordonnance with new doctor and patient if changed
+        } else if (appointment.getOrdonnance() != null) {
+            Ordonnance ordonnance = appointment.getOrdonnance();
             ordonnance.setDoctor(doctor);
             ordonnance.setPatient(patient);
             ordonnanceRepository.save(ordonnance);
         }
-        appointment.setDoctor(doctor);
-        appointment.setPatient(patient);
-        appointment.setDate(appointmentDTO.getDate());
+
         appointment = appointmentRepository.save(appointment);
         return convertToDTO(appointment);
     }
@@ -127,21 +145,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     public void deleteAppointment(Long id) {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
-        // Optionally delete associated Ordonnance
         if (appointment.getOrdonnance() != null) {
             ordonnanceRepository.delete(appointment.getOrdonnance());
         }
-        appointmentRepository.deleteById(id);
-    }
-
-    private AppointmentDTO convertToDTO(Appointment appointment) {
-        return new AppointmentDTO(
-                appointment.getId(),
-                appointment.getDoctor().getId(),
-                appointment.getPatient().getId(),
-                appointment.getDate(),
-                appointment.getOrdonnance() != null ? appointment.getOrdonnance().getId() : null
-        );
+        appointmentRepository.delete(appointment);
     }
 
     @Override
@@ -152,4 +159,14 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .collect(Collectors.toList());
     }
 
+    private AppointmentDTO convertToDTO(Appointment appointment) {
+        return new AppointmentDTO(
+                appointment.getId(),
+                appointment.getDoctor().getId(),
+                appointment.getPatient().getId(),
+                appointment.getDate(),
+                appointment.getStatus(),
+                appointment.getOrdonnance() != null ? appointment.getOrdonnance().getId() : null
+        );
+    }
 }

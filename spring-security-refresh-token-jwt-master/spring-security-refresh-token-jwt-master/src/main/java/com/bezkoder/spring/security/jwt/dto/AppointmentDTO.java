@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.AllArgsConstructor;
+import com.bezkoder.spring.security.jwt.models.Appointment.AppointmentStatus;
 
 import java.time.LocalDateTime;
 
@@ -26,6 +27,8 @@ public class AppointmentDTO {
     @FutureOrPresent
     private LocalDateTime date;
 
-    @Getter
+    // Status is included in responses but not required in requests
+    private AppointmentStatus status;
+
     private Long ordonnanceId;
 }
