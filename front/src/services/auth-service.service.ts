@@ -1,5 +1,5 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { User } from 'src/models/User.model';
@@ -11,9 +11,9 @@ export class AuthServiceService {
   private baseUrl = 'http://localhost:9090/api/auth';
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
-  private userNameSubject = new BehaviorSubject<string | null>(localStorage.getItem('user_name'));
-  private userRoleSubject = new BehaviorSubject<string | null>(localStorage.getItem('user_role'));
-  private userIdSubject = new BehaviorSubject<number | null>(Number(localStorage.getItem('user_id')) || null);
+  private userNameSubject = new BehaviorSubject<string | null>(sessionStorage.getItem('user_name'));
+  private userRoleSubject = new BehaviorSubject<string | null>(sessionStorage.getItem('user_role'));
+  private userIdSubject = new BehaviorSubject<number | null>(Number(sessionStorage.getItem('user_id')) || null);
 
   constructor(private http: HttpClient) {
     this.checkInitialAuthStatus();
@@ -27,19 +27,27 @@ export class AuthServiceService {
         const userRole = response?.roles?.[0];
         const userId = response?.id;
         if (userName) {
-          localStorage.setItem('user_name', userName);
+          sessionStorage.setItem('user_name', userName);
           this.userNameSubject.next(userName);
         }
         if (userRole) {
-          localStorage.setItem('user_role', userRole);
+          sessionStorage.setItem('user_role', userRole);
           this.userRoleSubject.next(userRole);
         }
         if (userId) {
-          localStorage.setItem('user_id', userId.toString());
+          sessionStorage.setItem('user_id', userId.toString());
           this.userIdSubject.next(userId);
         }
       }),
-      catchError(error => throwError(() => new Error(error.error?.message || 'Login failed')))
+      catchError(error => {
+        let message = 'Échec de la connexion';
+        if (error.status === 401) {
+          message = 'Email ou mot de passe incorrect';
+        } else if (error.error?.message) {
+          message = error.error.message;
+        }
+        return throwError(() => new Error(message));
+      })
     );
   }
 
@@ -69,7 +77,13 @@ export class AuthServiceService {
     }
 
     return this.http.post(`${this.baseUrl}/signup`, formData, { withCredentials: true }).pipe(
-      catchError(error => throwError(() => new Error(error.error?.message || 'Patient registration failed')))
+      catchError(error => {
+        let message = 'Échec de l\'inscription';
+        if (error.error?.message) {
+          message = error.error.message;
+        }
+        return throwError(() => new Error(message));
+      })
     );
   }
 
@@ -96,7 +110,13 @@ export class AuthServiceService {
     }
 
     return this.http.post(`${this.baseUrl}/signup`, formData, { withCredentials: true }).pipe(
-      catchError(error => throwError(() => new Error(error.error?.message || 'Doctor registration failed')))
+      catchError(error => {
+        let message = 'Échec de l\'inscription';
+        if (error.error?.message) {
+          message = error.error.message;
+        }
+        return throwError(() => new Error(message));
+      })
     );
   }
 
@@ -107,11 +127,29 @@ export class AuthServiceService {
         this.userNameSubject.next(null);
         this.userRoleSubject.next(null);
         this.userIdSubject.next(null);
-        localStorage.removeItem('user_name');
-        localStorage.removeItem('user_role');
-        localStorage.removeItem('user_id');
+        sessionStorage.removeItem('user_name');
+        sessionStorage.removeItem('user_role');
+        sessionStorage.removeItem('user_id');
       }),
-      catchError(error => throwError(() => new Error(error.error?.message || 'Logout failed')))
+      catchError(error => {
+        let message = 'Échec de la déconnexion';
+        if (error.error?.message) {
+          message = error.error.message;
+        }
+        return throwError(() => new Error(message));
+      })
+    );
+  }
+
+  refreshToken(): Observable<any> {
+    return this.http.post(`${this.baseUrl}/refreshtoken`, {}, { withCredentials: true }).pipe(
+      tap((response: any) => {
+        this.isAuthenticatedSubject.next(true);
+      }),
+      catchError(error => {
+        this.logout().subscribe(); // Logout if refresh fails
+        return throwError(() => new Error('Session expirée, veuillez vous reconnecter'));
+      })
     );
   }
 
@@ -120,7 +158,7 @@ export class AuthServiceService {
   }
 
   private checkInitialAuthStatus(): void {
-    const isAuthenticated = !!localStorage.getItem('user_name') && !!localStorage.getItem('user_role');
+    const isAuthenticated = !!sessionStorage.getItem('user_name') && !!sessionStorage.getItem('user_role');
     this.isAuthenticatedSubject.next(isAuthenticated);
   }
 
@@ -135,7 +173,4 @@ export class AuthServiceService {
   get userId$(): Observable<number | null> {
     return this.userIdSubject.asObservable();
   }
-
-
-
 }

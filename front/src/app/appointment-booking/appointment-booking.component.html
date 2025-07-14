@@ -63,7 +63,7 @@
     <div class="card">
       <div class="card-header">
         <h5 class="card-title mb-0">Available Time Slots</h5>
-        <small class="text-muted">Click on an available time slot to select it</small>
+        <small class="text-muted">Red: Confirmed appointments | Yellow: Your pending appointments | Click on an available time slot to book</small>
       </div>
       <div class="card-body">
         <full-calendar [options]="calendarOptions"></full-calendar>
@@ -113,7 +113,7 @@
           </div>
         </div>
       </div>
-      
+
       <div class="mt-4">
         <button 
           class="btn btn-primary me-2" 
@@ -139,11 +139,12 @@
     <h6>How to book an appointment:</h6>
     <ol>
       <li>Look at the calendar above and find an available time slot</li>
-      <li>Click on the desired time slot during business hours</li>
+      <li>Yellow slots indicate your pending appointments, which are awaiting doctor approval</li>
+      <li>Click on an available time slot (not red or yellow) to book a new appointment</li>
       <li>Confirm your appointment details</li>
       <li>Click "Confirm Booking" to complete your appointment</li>
     </ol>
-    <p class="mb-0"><strong>Note:</strong> Red slots are already booked by other patients.</p>
+    <p class="mb-0"><strong>Note:</strong> Red slots are confirmed appointments booked by other patients. Your pending appointments are shown in yellow.</p>
   </div>
 </div>
 
@@ -194,8 +195,8 @@
 }
 
 .fc-day-past {
-  background-color: #e9ecef !important; /* Light gray background */
-  color: #6c757d !important; /* Gray text */
-  cursor: not-allowed !important; /* Disable pointer cursor */
+  background-color: #e9ecef !important;
+  color: #6c757d !important;
+  cursor: not-allowed !important;
 }
 </style>

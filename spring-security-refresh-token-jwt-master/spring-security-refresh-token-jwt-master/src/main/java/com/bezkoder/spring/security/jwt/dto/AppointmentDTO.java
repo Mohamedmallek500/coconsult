@@ -1,5 +1,6 @@
 package com.bezkoder.spring.security.jwt.dto;
 
+import com.bezkoder.spring.security.jwt.models.AppointmentStatus;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -26,6 +27,7 @@ public class AppointmentDTO {
     @FutureOrPresent
     private LocalDateTime date;
 
-    @Getter
     private Long ordonnanceId;
+
+    private AppointmentStatus status; // Ajout du champ status
 }

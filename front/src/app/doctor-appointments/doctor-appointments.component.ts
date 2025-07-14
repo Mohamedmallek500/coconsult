@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { CalendarOptions, EventInput, EventClickArg } from '@fullcalendar/core';
+import { CalendarOptions, EventInput, EventClickArg, DateSelectArg } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
@@ -23,6 +23,8 @@ export class DoctorAppointmentsComponent implements OnInit {
   errorMessage: string | null = null;
   calendarOptions: CalendarOptions;
   selectedAppointment: Appointment | null = null;
+  selectedTimeSlot: Date | null = null;
+  selectedTimeSlotAppointments: Appointment[] | null = null;
   isProcessing = false;
 
   constructor(
@@ -56,6 +58,7 @@ export class DoctorAppointmentsComponent implements OnInit {
       ],
       events: [],
       eventClick: this.handleEventClick.bind(this),
+      select: this.handleDateSelect.bind(this), // Ajout pour gérer la sélection de créneau
       allDaySlot: false,
       height: 'auto',
       slotLabelFormat: {
@@ -114,16 +117,13 @@ export class DoctorAppointmentsComponent implements OnInit {
       next: (appointments) => {
         console.log('Appointments received:', appointments);
         
-        // Normalize dates - handle both API response formats
         const normalizedAppointments = appointments.map(app => ({
           ...app,
           date: new Date(app.date),
-          // Ensure we have the correct property names for our interface
-          patient: app.patient ,
-          doctor: app.doctor 
+          patient: app.patient,
+          doctor: app.doctor
         }));
 
-        // Resolve patient information for each appointment
         this.resolvePatientInformation(normalizedAppointments);
       },
       error: (err) => {
@@ -142,23 +142,19 @@ export class DoctorAppointmentsComponent implements OnInit {
       return;
     }
 
-    // Create observables for patient resolution
     const patientObservables: Observable<Appointment>[] = appointments.map(app => {
-      // Get patient ID from either patientId or patient property
       let patientId: number;
       if (app.patientId) {
         patientId = app.patientId;
       } else if (typeof app.patient === 'number') {
         patientId = app.patient;
       } else if (this.isPatientUser(app.patient)) {
-        // Patient is already a User object
         return of({
           ...app,
           patient: app.patient,
           doctor: app.doctor || app.doctorId
         } as Appointment);
       } else {
-        // No valid patient ID found
         console.error('No valid patient ID found for appointment:', app);
         return of({
           ...app,
@@ -167,7 +163,6 @@ export class DoctorAppointmentsComponent implements OnInit {
         } as Appointment);
       }
       
-      // Fetch patient details using the ID
       return this.userService.getUserById(patientId).pipe(
         map((patient: User) => ({
           ...app,
@@ -176,7 +171,6 @@ export class DoctorAppointmentsComponent implements OnInit {
         } as Appointment)),
         catchError(error => {
           console.error(`Error loading patient ${patientId}:`, error);
-          // Return appointment with patient ID if user fetch fails
           return of({
             ...app,
             patient: patientId,
@@ -186,7 +180,6 @@ export class DoctorAppointmentsComponent implements OnInit {
       );
     });
 
-    // Execute all patient resolution requests
     forkJoin(patientObservables).subscribe({
       next: (resolvedAppointments) => {
         console.log('Resolved appointments:', resolvedAppointments);
@@ -203,14 +196,20 @@ export class DoctorAppointmentsComponent implements OnInit {
   }
 
   updateCalendarEvents(): void {
-    const events: EventInput[] = this.appointments.map(appointment => ({
-      id: appointment.id?.toString(),
-      title: this.getEventTitle(appointment),
-      start: new Date(appointment.date),
-      end: new Date(new Date(appointment.date).getTime() + 30 * 60 * 1000),
-      color: appointment.status === 'CONFIRMED' ? '#dc3545' : '#ffc107',
-      editable: false
-    }));
+    const events: EventInput[] = this.appointments.map(appointment => {
+      const sameTimeAppointments = this.appointments.filter(app =>
+        app.date.getTime() === appointment.date.getTime() && app.status === 'PENDING'
+      ).length;
+      const suffix = sameTimeAppointments > 1 ? ` (*${sameTimeAppointments})` : '';
+      return {
+        id: appointment.id?.toString(),
+        title: this.getEventTitle(appointment) + suffix,
+        start: new Date(appointment.date),
+        end: new Date(new Date(appointment.date).getTime() + 30 * 60 * 1000),
+        color: appointment.status === 'CONFIRMED' ? '#dc3545' : '#ffc107',
+        editable: false
+      };
+    });
 
     this.calendarOptions = {
       ...this.calendarOptions,
@@ -220,13 +219,32 @@ export class DoctorAppointmentsComponent implements OnInit {
 
   handleEventClick(info: EventClickArg): void {
     const appointmentId = Number(info.event.id);
-    this.selectedAppointment = this.appointments.find(app => app.id === appointmentId) || null;
-    
-    if (!this.selectedAppointment) {
-      this.errorMessage = 'Appointment not found';
+    const selectedAppointment = this.appointments.find(app => app.id === appointmentId);
+    if (selectedAppointment) {
+      this.selectedTimeSlot = new Date(selectedAppointment.date);
+      this.selectedTimeSlotAppointments = this.appointments.filter(app =>
+        app.date.getTime() === this.selectedTimeSlot!.getTime() &&
+        app.status === 'PENDING'
+      );
+      this.selectedAppointment = selectedAppointment;
     } else {
-      console.log('Selected appointment:', this.selectedAppointment);
+      this.errorMessage = 'Appointment not found';
+      this.selectedTimeSlotAppointments = null;
+      this.selectedAppointment = null;
     }
+  }
+
+  handleDateSelect(info: DateSelectArg): void {
+    this.selectedTimeSlot = info.start;
+    this.selectedTimeSlotAppointments = this.appointments.filter(app =>
+      app.date.getTime() === this.selectedTimeSlot!.getTime() &&
+      app.status === 'PENDING'
+    );
+    this.selectedAppointment = null;
+  }
+
+  selectAppointment(appointment: Appointment): void {
+    this.selectedAppointment = appointment;
   }
 
   confirmAppointment(): void {
@@ -241,8 +259,6 @@ export class DoctorAppointmentsComponent implements OnInit {
     this.appointmentService.confirmAppointment(this.selectedAppointment.id).subscribe({
       next: (updatedAppointment) => {
         console.log('Appointment confirmed:', updatedAppointment);
-        
-        // Resolve patient information for the updated appointment
         this.resolvePatientForUpdatedAppointment(updatedAppointment);
       },
       error: (err) => {
@@ -263,19 +279,17 @@ export class DoctorAppointmentsComponent implements OnInit {
   }
 
   private resolvePatientForUpdatedAppointment(updatedAppointment: any): void {
-    // Get patient ID from either patientId or patient property
     let patientId: number;
     if (updatedAppointment.patientId) {
       patientId = updatedAppointment.patientId;
     } else if (typeof updatedAppointment.patient === 'number') {
       patientId = updatedAppointment.patient;
     } else if (this.isPatientUser(updatedAppointment.patient)) {
-      // Patient is already a User object
-      const resolvedAppointment = { 
-        ...updatedAppointment, 
-        patient: updatedAppointment.patient, 
+      const resolvedAppointment = {
+        ...updatedAppointment,
+        patient: updatedAppointment.patient,
         doctor: updatedAppointment.doctor || updatedAppointment.doctorId,
-        date: new Date(updatedAppointment.date) 
+        date: new Date(updatedAppointment.date)
       };
       
       this.appointments = this.appointments.map(app =>
@@ -284,6 +298,7 @@ export class DoctorAppointmentsComponent implements OnInit {
       
       this.updateCalendarEvents();
       this.selectedAppointment = null;
+      this.selectedTimeSlotAppointments = null;
       this.isProcessing = false;
       alert('Appointment confirmed successfully');
       return;
@@ -294,23 +309,22 @@ export class DoctorAppointmentsComponent implements OnInit {
       return;
     }
 
-    // Fetch patient details
     this.userService.getUserById(patientId).subscribe({
       next: (patient) => {
-        const resolvedAppointment = { 
-          ...updatedAppointment, 
-          patient: patient, 
+        const resolvedAppointment = {
+          ...updatedAppointment,
+          patient: patient,
           doctor: updatedAppointment.doctor || updatedAppointment.doctorId,
-          date: new Date(updatedAppointment.date) 
+          date: new Date(updatedAppointment.date)
         };
         
-        // Update the appointment in the list
         this.appointments = this.appointments.map(app =>
           app.id === resolvedAppointment.id ? resolvedAppointment : app
         );
         
         this.updateCalendarEvents();
         this.selectedAppointment = null;
+        this.selectedTimeSlotAppointments = null;
         this.isProcessing = false;
         alert('Appointment confirmed successfully');
       },
@@ -338,6 +352,7 @@ export class DoctorAppointmentsComponent implements OnInit {
           this.appointments = this.appointments.filter(app => app.id !== this.selectedAppointment!.id);
           this.updateCalendarEvents();
           this.selectedAppointment = null;
+          this.selectedTimeSlotAppointments = null;
           this.isProcessing = false;
           alert('Appointment deleted successfully');
         },

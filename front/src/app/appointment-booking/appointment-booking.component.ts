@@ -26,6 +26,7 @@ export class AppointmentBookingComponent implements OnInit {
   isBooking = false;
   currentUser: User | null = null;
   doctorId: number | null = null;
+  patientAppointments: Appointment[] = []; // Store patient's appointments
 
   private baseUrl = 'http://localhost:9090/api';
 
@@ -65,7 +66,6 @@ export class AppointmentBookingComponent implements OnInit {
       dateClick: this.handleDateClick.bind(this),
       allDaySlot: false,
       height: 'auto',
-      eventColor: '#dc3545', // Red for booked appointments
       slotLabelFormat: {
         hour: '2-digit',
         minute: '2-digit',
@@ -82,7 +82,7 @@ export class AppointmentBookingComponent implements OnInit {
   ngOnInit(): void {
     const doctorIdParam = this.route.snapshot.paramMap.get('id');
     console.log('Doctor ID from route:', doctorIdParam);
-    
+
     if (doctorIdParam && !isNaN(+doctorIdParam)) {
       this.doctorId = +doctorIdParam;
       this.loadData(this.doctorId);
@@ -94,53 +94,69 @@ export class AppointmentBookingComponent implements OnInit {
 
   loadData(doctorId: number): void {
     console.log('Loading data for doctor ID:', doctorId);
-    
+
     this.userService.getUserById(doctorId).subscribe({
       next: (doctor) => {
         console.log('Doctor loaded:', doctor);
         this.doctor = doctor;
-        
+
         this.authService.userRole$.subscribe({
           next: (role) => {
             console.log('User role:', role);
-            
+
             if (role === 'patient') {
               this.authService.userId$.subscribe({
                 next: (userId) => {
                   console.log('Current user ID:', userId);
-                  
+
                   if (!userId) {
                     this.errorMessage = 'User ID not found. Please log in again.';
                     this.isLoading = false;
                     this.router.navigate(['/login']);
                     return;
                   }
-                  
+
                   forkJoin([
                     this.userService.getUserById(userId),
-                    this.appointmentService.getAppointmentsByDoctor(doctorId)
+                    this.appointmentService.getAppointmentsByDoctor(doctorId),
+                    this.appointmentService.getAppointmentsByPatient(userId) // New call to get patient appointments
                   ]).subscribe({
-                    next: ([currentUser, appointments]) => {
+                    next: ([currentUser, doctorAppointments, patientAppointments]) => {
                       console.log('Current user:', currentUser);
-                      console.log('Appointments:', appointments);
-                      
+                      console.log('Doctor appointments:', doctorAppointments);
+                      console.log('Patient appointments:', patientAppointments);
+
                       this.currentUser = currentUser;
-                      
-                      // Filter appointments to only include CONFIRMED status
-                      const confirmedAppointments = appointments.filter(appointment => appointment.status === 'CONFIRMED');
-                      
-                      const events: EventInput[] = confirmedAppointments.map(appointment => ({
+                      this.patientAppointments = patientAppointments.filter(app => app.doctorId === doctorId); // Filter for this doctor
+
+                      // Create calendar events
+                      const events: EventInput[] = [];
+
+                      // Add CONFIRMED appointments (all patients) in red
+                      const confirmedAppointments = doctorAppointments.filter(appointment => appointment.status === 'CONFIRMED');
+                      events.push(...confirmedAppointments.map(appointment => ({
                         title: 'Booked',
                         start: new Date(appointment.date),
                         end: new Date(new Date(appointment.date).getTime() + 30 * 60 * 1000),
+                        color: '#dc3545', // Red for confirmed
                         editable: false
-                      }));
-                      
+                      })));
+
+                      // Add PENDING appointments for the current patient in yellow
+                      const patientPendingAppointments = this.patientAppointments.filter(appointment => appointment.status === 'PENDING');
+                      events.push(...patientPendingAppointments.map(appointment => ({
+                        title: 'Your Pending Appointment',
+                        start: new Date(appointment.date),
+                        end: new Date(new Date(appointment.date).getTime() + 30 * 60 * 1000),
+                        color: '#ffc107', // Yellow for patient's pending appointments
+                        editable: false
+                      })));
+
                       this.calendarOptions = {
                         ...this.calendarOptions,
                         events: events
                       };
-                      
+
                       this.isLoading = false;
                     },
                     error: (err) => {
@@ -202,8 +218,15 @@ export class AppointmentBookingComponent implements OnInit {
     }
   }
 
-  handleEventClick(): void {
-    this.errorMessage = 'This slot is already booked';
+  handleEventClick(info: any): void {
+    const eventStart = new Date(info.event.start);
+    const isPending = info.event.extendedProps?.status === 'PENDING'; // Add status to event props
+
+    if (isPending) {
+      this.errorMessage = 'You already have a pending appointment at this time';
+    } else {
+      this.errorMessage = 'This slot is already booked';
+    }
     this.selectedSlot = null;
   }
 
@@ -211,19 +234,16 @@ export class AppointmentBookingComponent implements OnInit {
     const hours = date.getHours();
     const minutes = date.getMinutes();
     const day = date.getDay();
-    
-    // Sunday (day 0) is not bookable
+
     if (day === 0) {
       return false;
     }
-    
-    // Monday to Friday: 8:00 AM - 12:00 PM and 2:00 PM - 5:00 PM
-    // Saturday (day 6): 8:00 AM - 12:00 PM only
+
     return (
-      ((day >= 1 && day <= 5) && // Monday - Friday
+      ((day >= 1 && day <= 5) &&
         ((hours >= 8 && hours < 12) || (hours >= 14 && hours < 17)) ||
-      (day === 6 && hours >= 8 && hours < 12)) && // Saturday
-      minutes % 30 === 0 // Only allow slots starting at 0 or 30 minutes
+      (day === 6 && hours >= 8 && hours < 12)) &&
+      minutes % 30 === 0
     );
   }
 
@@ -232,7 +252,7 @@ export class AppointmentBookingComponent implements OnInit {
     console.log('Checking slot:', start, 'against events:', events);
     return events.some(event => {
       const eventStart = new Date(event.start as string | Date);
-      return eventStart.getTime() === start.getTime();
+      return eventStart.getTime() === start.getTime() && event.color === '#dc3545'; // Only block confirmed appointments
     });
   }
 
@@ -256,7 +276,8 @@ export class AppointmentBookingComponent implements OnInit {
     const appointmentData: AppointmentRequest = {
       doctorId: this.doctor.id,
       patientId: this.currentUser.id,
-      date: formattedDate
+      date: formattedDate,
+      status: 'PENDING' // Explicitly set to PENDING
     };
 
     console.log('Sending appointment data:', JSON.stringify(appointmentData, null, 2));
@@ -278,43 +299,52 @@ export class AppointmentBookingComponent implements OnInit {
   }
 
   private formatDateForBackend(date: Date): string {
-    // Format the date to preserve local time (e.g., 2025-07-10T08:00:00)
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+    const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const seconds = String(date.getSeconds()).padStart(2, '0');
-    
+
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
   }
 
   private handleBookingSuccess(appointment: any): void {
-    // Only add the event to the calendar if the appointment is CONFIRMED
-    if (appointment.status === 'CONFIRMED') {
-      const newEvent = {
-        title: 'Booked',
-        start: this.selectedSlot!.start,
-        end: this.selectedSlot!.end,
-        editable: false,
-        color: '#dc3545'
-      };
+    // Add the new PENDING appointment to patientAppointments and the calendar
+    const newAppointment: Appointment = {
+      ...appointment,
+      date: new Date(appointment.date),
+      patient: this.currentUser!,
+      doctor: this.doctor!,
+      status: 'PENDING'
+    };
 
-      this.calendarOptions.events = [...(this.calendarOptions.events as EventInput[]), newEvent];
-    }
-    
+    this.patientAppointments = [...this.patientAppointments, newAppointment];
+
+    // Update calendar events
+    const newEvent: EventInput = {
+      title: 'Your Pending Appointment',
+      start: this.selectedSlot!.start,
+      end: this.selectedSlot!.end,
+      color: '#ffc107', // Yellow for pending
+      editable: false,
+      extendedProps: { status: 'PENDING' } // Add status for eventClick
+    };
+
+    this.calendarOptions.events = [...(this.calendarOptions.events as EventInput[]), newEvent];
+
     this.selectedSlot = null;
     this.isBooking = false;
-    
-    alert(`Appointment booked for ${new Date(appointment.date).toLocaleString()}`);
+
+    alert(`Appointment booked for ${new Date(appointment.date).toLocaleString()} (Pending approval)`);
   }
 
   private handleBookingError(error: any): void {
     this.isBooking = false;
-    
+
     let errorMsg = 'Failed to book appointment';
     if (error.status === 0) {
-      errorMsg = 'Could not connect to server. Please verify the backend is running on port 8080 and check your network connection.';
+      errorMsg = 'Could not connect to server. Please verify the backend is running on port 9090 and check your network connection.';
     } else if (error.status === 401) {
       errorMsg = 'Authentication failed. Please log in again.';
     } else if (error.status === 400 && error.error?.message) {
@@ -322,7 +352,7 @@ export class AppointmentBookingComponent implements OnInit {
     } else if (error.message) {
       errorMsg = error.message;
     }
-    
+
     this.errorMessage = errorMsg;
     console.error('Error details:', error);
   }

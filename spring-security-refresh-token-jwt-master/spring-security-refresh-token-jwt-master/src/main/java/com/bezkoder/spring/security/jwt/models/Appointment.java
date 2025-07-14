@@ -36,4 +36,8 @@ public class Appointment {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ordonnance_id")
     private Ordonnance ordonnance;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private AppointmentStatus status = AppointmentStatus.PENDING; // Par défaut "en attente"
 }

@@ -8,7 +8,7 @@
 
   <!-- Page Title -->
   <h2 class="mb-4">My Appointments</h2>
-  <p class="text-muted">View and manage your appointments. Click on an appointment to confirm or delete it.</p>
+  <p class="text-muted">View and manage your appointments. Click on a time slot or appointment to view pending appointments and select one to confirm.</p>
 
   <!-- Error Message -->
   <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -29,7 +29,7 @@
     <div class="card">
       <div class="card-header">
         <h5 class="card-title mb-0">Appointment Schedule</h5>
-        <small class="text-muted">Yellow: Pending | Red: Confirmed</small>
+        <small class="text-muted">Yellow: Pending | Red: Confirmed | (*): Multiple pending appointments</small>
       </div>
       <div class="card-body">
         <full-calendar [options]="calendarOptions" aria-label="Appointment calendar"></full-calendar>
@@ -42,8 +42,73 @@
     <p>No appointments found. Please check back later or contact support for assistance.</p>
   </div>
 
+  <!-- Pending Appointments List for a Specific Time Slot -->
+<div *ngIf="selectedTimeSlotAppointments && selectedTimeSlotAppointments.length > 0" class="card mt-4">    <div class="card-header bg-secondary text-white">
+      <h4 class="mb-0">Pending Appointments for {{ selectedTimeSlot | date: 'fullDate' }} at {{ selectedTimeSlot | date: 'shortTime' }}</h4>
+    </div>
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let appointment of selectedTimeSlotAppointments">
+            <td>
+              <ng-container *ngIf="isPatientUser(appointment.patient); else patientId">
+                {{ appointment.patient.nom ?? 'Unknown' }} {{ appointment.patient.prenom ?? '' }}
+              </ng-container>
+              <ng-template #patientId>
+                Patient ID: {{ appointment.patient }}
+              </ng-template>
+            </td>
+            <td>
+              <ng-container *ngIf="isPatientUser(appointment.patient); else noEmail">
+                {{ appointment.patient.email }}
+              </ng-container>
+              <ng-template #noEmail>Not available</ng-template>
+            </td>
+            <td>
+              <ng-container *ngIf="isPatientUser(appointment.patient) && appointment.patient.numtel; else noPhone">
+                {{ appointment.patient.numtel }}
+              </ng-container>
+              <ng-template #noPhone>Not available</ng-template>
+            </td>
+            <td>
+              <span
+                [ngClass]="{
+                  'badge': true,
+                  'bg-warning': appointment.status === 'PENDING',
+                  'bg-danger': appointment.status === 'CONFIRMED'
+                }"
+                [attr.aria-label]="appointment.status + ' appointment status'"
+              >
+                {{ appointment.status }}
+              </span>
+            </td>
+            <td>
+              <button
+                class="btn btn-primary btn-sm me-2"
+                (click)="selectAppointment(appointment)"
+                [disabled]="isProcessing"
+                aria-label="Select appointment"
+              >
+                Select
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- Appointment Details and Actions -->
-  <div *ngIf="selectedAppointment && !isLoading" class="card">
+  <div *ngIf="selectedAppointment && !isLoading" class="card mt-4">
     <div class="card-header bg-primary text-white">
       <h4 class="mb-0">Appointment Details</h4>
     </div>
@@ -137,7 +202,7 @@
         </button>
         <button
           class="btn btn-outline-secondary"
-          (click)="selectedAppointment = null"
+          (click)="selectedAppointment = null; selectedTimeSlotAppointments = null"
           [disabled]="isProcessing"
           aria-label="Cancel selection"
         >
@@ -148,11 +213,11 @@
   </div>
 
   <!-- Instructions -->
-  <div *ngIf="!isLoading && !selectedAppointment && appointments.length > 0" class="alert alert-light mt-4">
+  <div *ngIf="!isLoading && !selectedAppointment && !selectedTimeSlotAppointments && appointments.length > 0" class="alert alert-light mt-4">
     <h6>How to manage appointments:</h6>
     <ol>
-      <li>Click on an appointment in the calendar to view details</li>
-      <li>Confirm pending appointments or delete them as needed</li>
+      <li>Click on a time slot or appointment in the calendar to view pending appointments for that time</li>
+      <li>Select a pending appointment to view details or confirm it</li>
       <li>Confirmed appointments are shown in red, pending in yellow</li>
     </ol>
     <p class="mb-0"><strong>Note:</strong> Contact support if you encounter issues managing appointments.</p>

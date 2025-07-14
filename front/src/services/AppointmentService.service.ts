@@ -109,6 +109,25 @@ export class AppointmentService {
     );
   }
 
+
+  getAppointmentsByPatient(patientId: number): Observable<Appointment[]> {
+  const url = `${this.apiUrl}/patient/${patientId}`;
+  return this.http.get<Appointment[]>(url, { withCredentials: true }).pipe(
+    catchError(error => {
+      console.error('Erreur complète:', error);
+      let errorMsg = 'Erreur lors de la récupération des rendez-vous du patient';
+      if (error.status === 0) {
+        errorMsg = 'Impossible de se connecter au serveur. Vérifiez que le serveur est démarré et accessible.';
+      } else if (error.status === 401) {
+        errorMsg = 'Authentification requise. Veuillez vous reconnecter.';
+      } else if (error.error?.message) {
+        errorMsg = error.error.message;
+      }
+      return throwError(() => new Error(errorMsg));
+    })
+  );
+}
+
   deleteAppointment(appointmentId: number): Observable<void> {
     const url = `${this.apiUrl}/${appointmentId}`;
     return this.http.delete<void>(url, { withCredentials: true }).pipe(

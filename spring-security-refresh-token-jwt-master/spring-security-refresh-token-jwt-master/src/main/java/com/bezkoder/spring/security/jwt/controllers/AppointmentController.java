@@ -54,4 +54,15 @@ public class AppointmentController {
         return ResponseEntity.ok(appointments);
     }
 
+    @PostMapping("/{id}/confirm")
+    public ResponseEntity<AppointmentDTO> confirmAppointment(@PathVariable Long id) {
+        AppointmentDTO confirmedAppointment = appointmentService.confirmAppointment(id);
+        return ResponseEntity.ok(confirmedAppointment);
+    }
+
+    @GetMapping("/patient/{patientId}")
+    public ResponseEntity<List<AppointmentDTO>> getAppointmentsByPatient(@PathVariable Long patientId) {
+        List<AppointmentDTO> appointments = appointmentService.getAppointmentsByPatient(patientId);
+        return ResponseEntity.ok(appointments);
+    }
 }

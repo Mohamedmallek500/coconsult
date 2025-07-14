@@ -31,87 +31,146 @@ export class UserService {
 
     return this.http.get<{ content: User[], totalPages: number }>(`${this.baseUrl}/filter`, { params, withCredentials: true })
       .pipe(
-        catchError(error => throwError(() => new Error(error.error?.message || 'Échec de la récupération des utilisateurs filtrés')))
+        catchError(error => {
+          let message = 'Échec de la récupération des utilisateurs filtrés';
+          if (error.error?.message) {
+            message = error.error.message;
+          }
+          return throwError(() => new Error(message));
+        })
       );
   }
 
-createUser(user: User, image?: File): Observable<{ message: string }> {
-  if (image) {
+  createUser(user: User, image?: File): Observable<{ message: string }> {
+    if (image) {
+      const formData = new FormData();
+      const userRequest = {
+        ...user,
+        roles: user.role ? [user.role] : [],
+        dossierfile: user.dossierfile ? user.dossierfile.map(item => typeof item === 'number' ? item : item.id) : []
+      };
+      formData.append('userRequest', new Blob([JSON.stringify(userRequest)], { type: 'application/json' }));
+      formData.append('image', image);
+      return this.http.post<{ message: string }>(`${this.baseUrl}`, formData, { withCredentials: true })
+        .pipe(
+          catchError(error => {
+            let message = 'Échec de la création';
+            if (error.error?.message) {
+              message = error.error.message;
+            }
+            return throwError(() => new Error(message));
+          })
+        );
+    } else {
+      const userRequest = {
+        ...user,
+        roles: user.role ? [user.role] : [],
+        dossierfile: user.dossierfile ? user.dossierfile.map(item => typeof item === 'number' ? item : item.id) : []
+      };
+      return this.http.post<{ message: string }>(`${this.baseUrl}`, userRequest, { withCredentials: true })
+        .pipe(
+          catchError(error => {
+            let message = 'Échec de la création';
+            if (error.error?.message) {
+              message = error.error.message;
+            }
+            return throwError(() => new Error(message));
+          })
+        );
+    }
+  }
+
+  updateUser(id: number, user: User, image?: File): Observable<{ message: string }> {
+    if (image) {
+      const formData = new FormData();
+      const userRequest = {
+        ...user,
+        roles: user.role ? [user.role] : [],
+        dossierfile: user.dossierfile ? user.dossierfile.map(item => typeof item === 'number' ? item : item.id) : []
+      };
+      formData.append('userRequest', new Blob([JSON.stringify(userRequest)], { type: 'application/json' }));
+      formData.append('image', image);
+      return this.http.put<{ message: string }>(`${this.baseUrl}/${id}`, formData, { withCredentials: true })
+        .pipe(
+          catchError(error => {
+            let message = 'Échec de la mise à jour';
+            if (error.error?.message) {
+              message = error.error.message;
+            }
+            return throwError(() => new Error(message));
+          })
+        );
+    } else {
+      const userRequest = {
+        ...user,
+        roles: user.role ? [user.role] : [],
+        dossierfile: user.dossierfile ? user.dossierfile.map(item => typeof item === 'number' ? item : item.id) : []
+      };
+      return this.http.put<{ message: string }>(`${this.baseUrl}/${id}`, userRequest, { withCredentials: true })
+        .pipe(
+          catchError(error => {
+            let message = 'Échec de la mise à jour';
+            if (error.error?.message) {
+              message = error.error.message;
+            }
+            return throwError(() => new Error(message));
+          })
+        );
+    }
+  }
+
+  updateUserImage(id: number, image: File): Observable<{ message: string }> {
     const formData = new FormData();
-    // Map User to UserRequest-compatible object
-    const userRequest = {
-      ...user,
-      roles: user.role ? [user.role] : [], // Convert role to roles array
-      dossierfile: user.dossierfile ? user.dossierfile.map(item => typeof item === 'number' ? item : item.id) : []
-    };
-    formData.append('userRequest', new Blob([JSON.stringify(userRequest)], { type: 'application/json' }));
     formData.append('image', image);
-    return this.http.post<{ message: string }>(`${this.baseUrl}`, formData, { withCredentials: true })
+    return this.http.post<{ message: string }>(`${this.baseUrl}/${id}/image`, formData, { withCredentials: true })
       .pipe(
-        catchError(error => throwError(() => new Error(error.error?.message || 'Échec de la création')))
-      );
-  } else {
-    const userRequest = {
-      ...user,
-      roles: user.role ? [user.role] : [],
-      dossierfile: user.dossierfile ? user.dossierfile.map(item => typeof item === 'number' ? item : item.id) : []
-    };
-    return this.http.post<{ message: string }>(`${this.baseUrl}`, userRequest, { withCredentials: true })
-      .pipe(
-        catchError(error => throwError(() => new Error(error.error?.message || 'Échec de la création')))
+        catchError(error => {
+          let message = 'Échec de la mise à jour de l\'image';
+          if (error.error?.message) {
+            message = error.error.message;
+          }
+          return throwError(() => new Error(message));
+        })
       );
   }
-}
 
-updateUser(id: number, user: User, image?: File): Observable<{ message: string }> {
-  if (image) {
-    // Update with image (multipart request)
-    const formData = new FormData();
-    // Map User to UserRequest-compatible object
-    const userRequest = {
-      ...user,
-      roles: user.role ? [user.role] : [], // Convert role to roles array
-      dossierfile: user.dossierfile ? user.dossierfile.map(item => typeof item === 'number' ? item : item.id) : []
-    };
-    formData.append('userRequest', new Blob([JSON.stringify(userRequest)], { type: 'application/json' }));
-    formData.append('image', image);
-    return this.http.put<{ message: string }>(`${this.baseUrl}/${id}`, formData, { withCredentials: true })
-      .pipe(
-        catchError(error => throwError(() => new Error(error.error?.message || 'Échec de la mise à jour')))
-      );
-  } else {
-    // Update without image (JSON request)
-    const userRequest = {
-      ...user,
-      roles: user.role ? [user.role] : [],
-      dossierfile: user.dossierfile ? user.dossierfile.map(item => typeof item === 'number' ? item : item.id) : []
-    };
-    return this.http.put<{ message: string }>(`${this.baseUrl}/${id}`, userRequest, { withCredentials: true })
-      .pipe(
-        catchError(error => throwError(() => new Error(error.error?.message || 'Échec de la mise à jour')))
-      );
-  }
-}
-
-
-updateUserImage(id: number, image: File): Observable<{ message: string }> {
-  const formData = new FormData();
-  formData.append('image', image);
-  return this.http.post<{ message: string }>(`${this.baseUrl}/${id}/image`, formData, { withCredentials: true })
-    .pipe(
-      catchError(error => throwError(() => new Error(error.error?.message || 'Échec de la mise à jour de l\'image')))
-    );
-}
   deleteUser(id: number): Observable<{ message: string }> {
-    return this.http.delete<{ message: string }>(`${this.baseUrl}/${id}`, { withCredentials: true });
+    return this.http.delete<{ message: string }>(`${this.baseUrl}/${id}`, { withCredentials: true })
+      .pipe(
+        catchError(error => {
+          let message = 'Échec de la suppression';
+          if (error.error?.message) {
+            message = error.error.message;
+          }
+          return throwError(() => new Error(message));
+        })
+      );
   }
 
   approveDoctor(id: number): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`http://localhost:9090/api/auth/approve-doctor/${id}`, {}, { withCredentials: true });
+    return this.http.post<{ message: string }>(`http://localhost:9090/api/auth/approve-doctor/${id}`, {}, { withCredentials: true })
+      .pipe(
+        catchError(error => {
+          let message = 'Échec de l\'approbation du médecin';
+          if (error.error?.message) {
+            message = error.error.message;
+          }
+          return throwError(() => new Error(message));
+        })
+      );
   }
 
   refuseDoctor(id: number): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`http://localhost:9090/api/auth/refuse-doctor/${id}`, {}, { withCredentials: true });
+    return this.http.post<{ message: string }>(`http://localhost:9090/api/auth/refuse-doctor/${id}`, {}, { withCredentials: true })
+      .pipe(
+        catchError(error => {
+          let message = 'Échec du refus du médecin';
+          if (error.error?.message) {
+            message = error.error.message;
+          }
+          return throwError(() => new Error(message));
+        })
+      );
   }
 
   searchDoctors(
@@ -131,13 +190,28 @@ updateUserImage(id: number, image: File): Observable<{ message: string }> {
     if (speciality) params = params.set('speciality', speciality);
     if (adresse) params = params.set('adresse', adresse);
 
-    return this.http.get<User[]>(`http://localhost:9090/api/doctors/search`, { params, withCredentials: true });
+    return this.http.get<User[]>(`http://localhost:9090/api/doctors/search`, { params, withCredentials: true })
+      .pipe(
+        catchError(error => {
+          let message = 'Échec de la recherche des médecins';
+          if (error.error?.message) {
+            message = error.error.message;
+          }
+          return throwError(() => new Error(message));
+        })
+      );
   }
 
   getAllSpecialities(): Observable<string[]> {
     return this.http.get<string[]>(`http://localhost:9090/api/doctors/specialities`, { withCredentials: true })
       .pipe(
-        catchError(error => throwError(() => new Error(error.error?.message || 'Échec de la récupération des spécialités')))
+        catchError(error => {
+          let message = 'Échec de la récupération des spécialités';
+          if (error.error?.message) {
+            message = error.error.message;
+          }
+          return throwError(() => new Error(message));
+        })
       );
   }
 }
