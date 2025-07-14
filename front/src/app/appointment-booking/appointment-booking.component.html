@@ -71,65 +71,69 @@
     </div>
   </div>
 
-  <!-- Appointment Confirmation Form -->
-  <div *ngIf="selectedSlot && doctor" class="card">
-    <div class="card-header bg-primary text-white">
-      <h4 class="mb-0">Confirm Appointment</h4>
-    </div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col-md-6">
-          <h5>Appointment Details</h5>
-          <table class="table table-borderless">
-            <tbody>
-              <tr>
-                <td><strong>Doctor:</strong></td>
-                <td>Dr. {{ doctor.nom }} {{ doctor.prenom }}</td>
-              </tr>
-              <tr>
-                <td><strong>Speciality:</strong></td>
-                <td>{{ doctor.speciality }}</td>
-              </tr>
-              <tr>
-                <td><strong>Date:</strong></td>
-                <td>{{ selectedSlot.start | date: 'fullDate' }}</td>
-              </tr>
-              <tr>
-                <td><strong>Time:</strong></td>
-                <td>{{ selectedSlot.start | date: 'shortTime' }} - {{ selectedSlot.end | date: 'shortTime' }}</td>
-              </tr>
-              <tr>
-                <td><strong>Duration:</strong></td>
-                <td>30 minutes</td>
-              </tr>
-            </tbody>
-          </table>
+  <!-- Appointment Confirmation Modal -->
+  <div class="modal fade" id="appointmentModal" tabindex="-1" aria-labelledby="appointmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="appointmentModalLabel">Confirm Appointment</h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeModal()" aria-label="Close"></button>
         </div>
-        <div class="col-md-6">
-          <h5>Patient Information</h5>
-          <div *ngIf="currentUser">
-            <p><strong>Name:</strong> {{ currentUser.nom }} {{ currentUser.prenom }}</p>
-            <p><strong>Email:</strong> {{ currentUser.email }}</p>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h5>Appointment Details</h5>
+              <table class="table table-borderless">
+                <tbody>
+                  <tr>
+                    <td><strong>Doctor:</strong></td>
+                    <td>Dr. {{ doctor?.nom }} {{ doctor?.prenom }}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Speciality:</strong></td>
+                    <td>{{ doctor?.speciality }}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Date:</strong></td>
+                    <td>{{ selectedSlot?.start | date: 'fullDate' }}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Time:</strong></td>
+                    <td>{{ selectedSlot?.start | date: 'shortTime' }} - {{ selectedSlot?.end | date: 'shortTime' }}</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Duration:</strong></td>
+                    <td>30 minutes</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="col-md-6">
+              <h5>Patient Information</h5>
+              <div *ngIf="currentUser">
+                <p><strong>Name:</strong> {{ currentUser.nom }} {{ currentUser.prenom }}</p>
+                <p><strong>Email:</strong> {{ currentUser.email }}</p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div class="mt-4">
-        <button 
-          class="btn btn-primary me-2" 
-          (click)="bookAppointment()" 
-          [disabled]="isBooking"
-        >
-          <span *ngIf="isBooking" class="spinner-border spinner-border-sm me-2"></span>
-          {{ isBooking ? 'Booking...' : 'Confirm Booking' }}
-        </button>
-        <button 
-          class="btn btn-outline-secondary" 
-          (click)="selectedSlot = null"
-          [disabled]="isBooking"
-        >
-          Cancel
-        </button>
+        <div class="modal-footer">
+          <button 
+            class="btn btn-primary me-2" 
+            (click)="bookAppointment()" 
+            [disabled]="isBooking"
+          >
+            <span *ngIf="isBooking" class="spinner-border spinner-border-sm me-2"></span>
+            {{ isBooking ? 'Booking...' : 'Confirm Booking' }}
+          </button>
+          <button 
+            class="btn btn-outline-secondary" 
+            (click)="closeModal()"
+            [disabled]="isBooking"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -198,5 +202,23 @@
   background-color: #e9ecef !important;
   color: #6c757d !important;
   cursor: not-allowed !important;
+}
+
+/* Modal styles */
+.modal-content {
+  border: none;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.modal-footer {
+  border-top: 1px solid #dee2e6;
+}
+
+.btn-close-white {
+  filter: invert(1) grayscale(100%) brightness(200%);
 }
 </style>

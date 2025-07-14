@@ -21,6 +21,7 @@ import { AdminUserManagementComponent } from './admin-user-management/admin-user
 import { AppointmentBookingComponent } from './appointment-booking/appointment-booking.component';
 import { AuthInterceptor } from './auth.interceptor';
 import { DoctorAppointmentsComponent } from './doctor-appointments/doctor-appointments.component';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
   declarations: [
@@ -46,7 +47,8 @@ import { DoctorAppointmentsComponent } from './doctor-appointments/doctor-appoin
     ReactiveFormsModule,
     CommonModule,
     HttpClientModule,
-    FullCalendarModule
+    FullCalendarModule,
+    NgbModule
 
 
   ],

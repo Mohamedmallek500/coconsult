@@ -243,9 +243,10 @@ export class DoctorAppointmentsComponent implements OnInit {
     this.selectedAppointment = null;
   }
 
-  selectAppointment(appointment: Appointment): void {
-    this.selectedAppointment = appointment;
-  }
+selectAppointment(appointment: Appointment): void {
+  console.log('Selected Appointment:', appointment);
+  this.selectedAppointment = appointment;
+}
 
   confirmAppointment(): void {
     if (!this.selectedAppointment?.id) {

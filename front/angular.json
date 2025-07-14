@@ -30,14 +30,18 @@
               "src/assets/css/bootstrap-icons.css",
               "src/assets/css/owl.carousel.min.css",
               "src/assets/css/owl.theme.default.min.css",
-              "src/assets/css/templatemo-medic-care.css"
+              "src/assets/css/templatemo-medic-care.css",
+              "node_modules/bootstrap/dist/css/bootstrap.min.css"
+
             ],
             "scripts": [
               "src/assets/js/jquery.min.js",
               "src/assets/js/bootstrap.bundle.min.js",
               "src/assets/js/owl.carousel.min.js",
               "src/assets/js/scrollspy.min.js",
-              "src/assets/js/custom.js"
+              "src/assets/js/custom.js",
+              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
+
             ],
             "allowedCommonJsDependencies": [
               "aos"
