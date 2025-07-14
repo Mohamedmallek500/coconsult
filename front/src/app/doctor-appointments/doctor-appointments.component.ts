@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, TemplateRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CalendarOptions, EventInput, EventClickArg, DateSelectArg } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -11,6 +11,7 @@ import { AppointmentService } from 'src/services/AppointmentService.service';
 import { UserService } from 'src/services/UserService.service';
 import { forkJoin, Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-doctor-appointments',
@@ -18,6 +19,8 @@ import { map, catchError } from 'rxjs/operators';
   styleUrls: ['./doctor-appointments.component.css']
 })
 export class DoctorAppointmentsComponent implements OnInit {
+  @ViewChild('pendingAppointmentsModal') pendingAppointmentsModal!: TemplateRef<any>;
+  @ViewChild('appointmentDetailsModal') appointmentDetailsModal!: TemplateRef<any>;
   appointments: Appointment[] = [];
   isLoading = true;
   errorMessage: string | null = null;
@@ -26,12 +29,15 @@ export class DoctorAppointmentsComponent implements OnInit {
   selectedTimeSlot: Date | null = null;
   selectedTimeSlotAppointments: Appointment[] | null = null;
   isProcessing = false;
+  private pendingModalRef: NgbModalRef | null = null;
+  private detailsModalRef: NgbModalRef | null = null;
 
   constructor(
     private authService: AuthServiceService,
     private appointmentService: AppointmentService,
     private userService: UserService,
-    private router: Router
+    private router: Router,
+    private modalService: NgbModal
   ) {
     this.calendarOptions = {
       plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
@@ -58,7 +64,7 @@ export class DoctorAppointmentsComponent implements OnInit {
       ],
       events: [],
       eventClick: this.handleEventClick.bind(this),
-      select: this.handleDateSelect.bind(this), // Ajout pour gérer la sélection de créneau
+      select: this.handleDateSelect.bind(this),
       allDaySlot: false,
       height: 'auto',
       slotLabelFormat: {
@@ -68,7 +74,7 @@ export class DoctorAppointmentsComponent implements OnInit {
       },
       dayCellClassNames: (arg) => {
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // Normalize to start of today
+        today.setHours(0, 0, 0, 0);
         return arg.date < today ? ['fc-day-past'] : [];
       }
     };
@@ -107,6 +113,39 @@ export class DoctorAppointmentsComponent implements OnInit {
         this.router.navigate(['/login']);
       }
     });
+  }
+
+  openPendingModal(): void {
+    this.pendingModalRef = this.modalService.open(this.pendingAppointmentsModal, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false
+    });
+  }
+
+  closePendingModal(): void {
+    if (this.pendingModalRef) {
+      this.pendingModalRef.close();
+      this.pendingModalRef = null;
+      this.selectedTimeSlot = null;
+      this.selectedTimeSlotAppointments = null;
+    }
+  }
+
+  openDetailsModal(): void {
+    this.detailsModalRef = this.modalService.open(this.appointmentDetailsModal, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false
+    });
+  }
+
+  closeDetailsModal(): void {
+    if (this.detailsModalRef) {
+      this.detailsModalRef.close();
+      this.detailsModalRef = null;
+      this.selectedAppointment = null;
+    }
   }
 
   loadAppointments(doctorId: number): void {
@@ -226,7 +265,12 @@ export class DoctorAppointmentsComponent implements OnInit {
         app.date.getTime() === this.selectedTimeSlot!.getTime() &&
         app.status === 'PENDING'
       );
-      this.selectedAppointment = selectedAppointment;
+      if (this.selectedTimeSlotAppointments.length > 0) {
+        this.openPendingModal();
+      } else {
+        this.selectedAppointment = selectedAppointment;
+        this.openDetailsModal();
+      }
     } else {
       this.errorMessage = 'Appointment not found';
       this.selectedTimeSlotAppointments = null;
@@ -240,13 +284,16 @@ export class DoctorAppointmentsComponent implements OnInit {
       app.date.getTime() === this.selectedTimeSlot!.getTime() &&
       app.status === 'PENDING'
     );
-    this.selectedAppointment = null;
+    if (this.selectedTimeSlotAppointments.length > 0) {
+      this.openPendingModal();
+    }
   }
 
-selectAppointment(appointment: Appointment): void {
-  console.log('Selected Appointment:', appointment);
-  this.selectedAppointment = appointment;
-}
+  selectAppointment(appointment: Appointment): void {
+    this.selectedAppointment = appointment;
+    this.closePendingModal();
+    this.openDetailsModal();
+  }
 
   confirmAppointment(): void {
     if (!this.selectedAppointment?.id) {
@@ -261,6 +308,7 @@ selectAppointment(appointment: Appointment): void {
       next: (updatedAppointment) => {
         console.log('Appointment confirmed:', updatedAppointment);
         this.resolvePatientForUpdatedAppointment(updatedAppointment);
+        this.closeDetailsModal();
       },
       error: (err) => {
         console.error('Error confirming appointment:', err);
@@ -352,8 +400,7 @@ selectAppointment(appointment: Appointment): void {
           console.log('Appointment deleted successfully');
           this.appointments = this.appointments.filter(app => app.id !== this.selectedAppointment!.id);
           this.updateCalendarEvents();
-          this.selectedAppointment = null;
-          this.selectedTimeSlotAppointments = null;
+          this.closeDetailsModal();
           this.isProcessing = false;
           alert('Appointment deleted successfully');
         },

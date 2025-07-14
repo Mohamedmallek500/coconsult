@@ -42,11 +42,13 @@
     <p>No appointments found. Please check back later or contact support for assistance.</p>
   </div>
 
-  <!-- Pending Appointments List for a Specific Time Slot -->
-<div *ngIf="selectedTimeSlotAppointments && selectedTimeSlotAppointments.length > 0" class="card mt-4">    <div class="card-header bg-secondary text-white">
-      <h4 class="mb-0">Pending Appointments for {{ selectedTimeSlot | date: 'fullDate' }} at {{ selectedTimeSlot | date: 'shortTime' }}</h4>
+  <!-- Pending Appointments Modal -->
+  <ng-template #pendingAppointmentsModal let-modal>
+    <div class="modal-header bg-secondary text-white">
+      <h5 class="modal-title">Pending Appointments for {{ selectedTimeSlot | date: 'fullDate' }} at {{ selectedTimeSlot | date: 'shortTime' }}</h5>
+      <button type="button" class="btn-close btn-close-white" (click)="closePendingModal()" aria-label="Close"></button>
     </div>
-    <div class="card-body">
+    <div class="modal-body">
       <table class="table table-hover">
         <thead>
           <tr>
@@ -105,14 +107,25 @@
         </tbody>
       </table>
     </div>
-  </div>
-
-  <!-- Appointment Details and Actions -->
-  <div *ngIf="selectedAppointment && !isLoading" class="card mt-4">
-    <div class="card-header bg-primary text-white">
-      <h4 class="mb-0">Appointment Details</h4>
+    <div class="modal-footer">
+      <button
+        class="btn btn-outline-secondary"
+        (click)="closePendingModal()"
+        [disabled]="isProcessing"
+        aria-label="Close modal"
+      >
+        Close
+      </button>
     </div>
-    <div class="card-body">
+  </ng-template>
+
+  <!-- Appointment Details Modal -->
+  <ng-template #appointmentDetailsModal let-modal>
+    <div class="modal-header bg-primary text-white">
+      <h5 class="modal-title">Appointment Details</h5>
+      <button type="button" class="btn-close btn-close-white" (click)="closeDetailsModal()" aria-label="Close"></button>
+    </div>
+    <div class="modal-body" *ngIf="selectedAppointment">
       <div class="row">
         <div class="col-md-6">
           <h5>Appointment Information</h5>
@@ -181,43 +194,43 @@
           </p>
         </div>
       </div>
-      <div class="mt-4">
-        <button
-          class="btn btn-primary me-2"
-          (click)="confirmAppointment()"
-          [disabled]="isProcessing || selectedAppointment.status === 'CONFIRMED'"
-          aria-label="Confirm appointment"
-        >
-          <span *ngIf="isProcessing" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-          {{ isProcessing ? 'Processing...' : 'Confirm Appointment' }}
-        </button>
-        <button
-          class="btn btn-danger me-2"
-          (click)="deleteAppointment()"
-          [disabled]="isProcessing"
-          aria-label="Delete appointment"
-        >
-          <span *ngIf="isProcessing" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-          {{ isProcessing ? 'Processing...' : 'Delete Appointment' }}
-        </button>
-        <button
-          class="btn btn-outline-secondary"
-          (click)="selectedAppointment = null; selectedTimeSlotAppointments = null"
-          [disabled]="isProcessing"
-          aria-label="Cancel selection"
-        >
-          Cancel
-        </button>
-      </div>
     </div>
-  </div>
+    <div class="modal-footer" *ngIf="selectedAppointment">
+      <button
+        class="btn btn-primary me-2"
+        (click)="confirmAppointment()"
+        [disabled]="isProcessing || selectedAppointment.status === 'CONFIRMED'"
+        aria-label="Confirm appointment"
+      >
+        <span *ngIf="isProcessing" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        {{ isProcessing ? 'Processing...' : 'Confirm Appointment' }}
+      </button>
+      <button
+        class="btn btn-danger me-2"
+        (click)="deleteAppointment()"
+        [disabled]="isProcessing"
+        aria-label="Delete appointment"
+      >
+        <span *ngIf="isProcessing" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        {{ isProcessing ? 'Processing...' : 'Delete Appointment' }}
+      </button>
+      <button
+        class="btn btn-outline-secondary"
+        (click)="closeDetailsModal()"
+        [disabled]="isProcessing"
+        aria-label="Close modal"
+      >
+        Close
+      </button>
+    </div>
+  </ng-template>
 
   <!-- Instructions -->
   <div *ngIf="!isLoading && !selectedAppointment && !selectedTimeSlotAppointments && appointments.length > 0" class="alert alert-light mt-4">
     <h6>How to manage appointments:</h6>
     <ol>
-      <li>Click on a time slot or appointment in the calendar to view pending appointments for that time</li>
-      <li>Select a pending appointment to view details or confirm it</li>
+      <li>Click on a time slot or appointment in the calendar to view pending appointments in a modal</li>
+      <li>Select a pending appointment to view its details in a separate modal</li>
       <li>Confirmed appointments are shown in red, pending in yellow</li>
     </ol>
     <p class="mb-0"><strong>Note:</strong> Contact support if you encounter issues managing appointments.</p>
@@ -246,9 +259,9 @@
 }
 
 .fc-day-past {
-  background-color: #e9ecef !important; /* Light gray background */
-  color: #6c757d !important; /* Gray text */
-  cursor: not-allowed !important; /* Disable pointer cursor */
+  background-color: #e9ecef !important;
+  color: #6c757d !important;
+  cursor: not-allowed !important;
 }
 
 .alert-dismissible .btn-close {
@@ -266,5 +279,22 @@
 .table th,
 .table td {
   vertical-align: middle;
+}
+
+.modal-content {
+  border: none;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.modal-footer {
+  border-top: 1px solid #dee2e6;
+}
+
+.btn-close-white {
+  filter: invert(1) grayscale(100%) brightness(200%);
 }
 </style>
