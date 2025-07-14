@@ -1,0 +1,205 @@
+<div class="container my-5">
+  <!-- Back button -->
+  <div class="mb-3">
+    <button class="btn btn-outline-secondary" (click)="goBack()" aria-label="Back to Home">
+      <i class="bi bi-arrow-left"></i> Back to Home
+    </button>
+  </div>
+
+  <!-- Page Title -->
+  <h2 class="mb-4">My Appointments</h2>
+  <p class="text-muted">View and manage your appointments. Click on an appointment to confirm or delete it.</p>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3">Loading appointments...</p>
+  </div>
+
+  <!-- Calendar -->
+  <div *ngIf="!isLoading" class="mb-4">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Appointment Schedule</h5>
+        <small class="text-muted">Yellow: Pending | Red: Confirmed</small>
+      </div>
+      <div class="card-body">
+        <full-calendar [options]="calendarOptions" aria-label="Appointment calendar"></full-calendar>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Appointments Message -->
+  <div *ngIf="!isLoading && appointments.length === 0" class="alert alert-info mt-4">
+    <p>No appointments found. Please check back later or contact support for assistance.</p>
+  </div>
+
+  <!-- Appointment Details and Actions -->
+  <div *ngIf="selectedAppointment && !isLoading" class="card">
+    <div class="card-header bg-primary text-white">
+      <h4 class="mb-0">Appointment Details</h4>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <h5>Appointment Information</h5>
+          <table class="table table-borderless">
+            <tbody>
+              <tr>
+                <td><strong>Patient:</strong></td>
+                <td>
+                  <ng-container *ngIf="isPatientUser(selectedAppointment.patient); else patientId">
+                    {{ selectedAppointment.patient.nom ?? 'Unknown' }} {{ selectedAppointment.patient.prenom ?? '' }}
+                  </ng-container>
+                  <ng-template #patientId>
+                    Patient ID: {{ selectedAppointment.patient }}
+                  </ng-template>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Email:</strong></td>
+                <td>
+                  <ng-container *ngIf="isPatientUser(selectedAppointment.patient); else noEmail">
+                    {{ selectedAppointment.patient.email }}
+                  </ng-container>
+                  <ng-template #noEmail>Not available</ng-template>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Date:</strong></td>
+                <td>{{ selectedAppointment.date | date: 'fullDate' }}</td>
+              </tr>
+              <tr>
+                <td><strong>Time:</strong></td>
+                <td>{{ selectedAppointment.date | date: 'shortTime' }} - {{ getEndTime(selectedAppointment.date) | date: 'shortTime' }}</td>
+              </tr>
+              <tr>
+                <td><strong>Duration:</strong></td>
+                <td>30 minutes</td>
+              </tr>
+              <tr>
+                <td><strong>Status:</strong></td>
+                <td>
+                  <span
+                    [ngClass]="{
+                      'badge': true,
+                      'bg-warning': selectedAppointment.status === 'PENDING',
+                      'bg-danger': selectedAppointment.status === 'CONFIRMED'
+                    }"
+                    [attr.aria-label]="selectedAppointment.status + ' appointment status'"
+                  >
+                    {{ selectedAppointment.status }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col-md-6">
+          <h5>Additional Information</h5>
+          <p *ngIf="isPatientUser(selectedAppointment.patient) && selectedAppointment.patient.numtel">
+            <strong>Phone:</strong> {{ selectedAppointment.patient.numtel }}
+          </p>
+          <p *ngIf="isPatientUser(selectedAppointment.patient) && selectedAppointment.patient.adresse">
+            <strong>Address:</strong> {{ selectedAppointment.patient.adresse }}
+          </p>
+          <p *ngIf="!isPatientUser(selectedAppointment.patient)" class="text-muted">
+            Additional patient details are not available. Contact support for more information.
+          </p>
+        </div>
+      </div>
+      <div class="mt-4">
+        <button
+          class="btn btn-primary me-2"
+          (click)="confirmAppointment()"
+          [disabled]="isProcessing || selectedAppointment.status === 'CONFIRMED'"
+          aria-label="Confirm appointment"
+        >
+          <span *ngIf="isProcessing" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          {{ isProcessing ? 'Processing...' : 'Confirm Appointment' }}
+        </button>
+        <button
+          class="btn btn-danger me-2"
+          (click)="deleteAppointment()"
+          [disabled]="isProcessing"
+          aria-label="Delete appointment"
+        >
+          <span *ngIf="isProcessing" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          {{ isProcessing ? 'Processing...' : 'Delete Appointment' }}
+        </button>
+        <button
+          class="btn btn-outline-secondary"
+          (click)="selectedAppointment = null"
+          [disabled]="isProcessing"
+          aria-label="Cancel selection"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Instructions -->
+  <div *ngIf="!isLoading && !selectedAppointment && appointments.length > 0" class="alert alert-light mt-4">
+    <h6>How to manage appointments:</h6>
+    <ol>
+      <li>Click on an appointment in the calendar to view details</li>
+      <li>Confirm pending appointments or delete them as needed</li>
+      <li>Confirmed appointments are shown in red, pending in yellow</li>
+    </ol>
+    <p class="mb-0"><strong>Note:</strong> Contact support if you encounter issues managing appointments.</p>
+  </div>
+</div>
+
+<style>
+.card {
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.fc-event {
+  cursor: pointer;
+}
+
+.fc-timegrid-slot {
+  cursor: pointer;
+}
+
+.fc-timegrid-slot:hover {
+  background-color: #f8f9fa;
+}
+
+.fc-day-past {
+  background-color: #e9ecef !important; /* Light gray background */
+  color: #6c757d !important; /* Gray text */
+  cursor: not-allowed !important; /* Disable pointer cursor */
+}
+
+.alert-dismissible .btn-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  padding: 0.375rem 0.75rem;
+}
+
+.fc-timegrid-slot-label {
+  font-size: 0.9rem;
+}
+
+.table th,
+.table td {
+  vertical-align: middle;
+}
+</style>

@@ -7,6 +7,7 @@ export interface Appointment {
   doctor: User | number; // User in response, number in some contexts
   patient: User | number; // User in response, number in some contexts
   date: Date | string; // Date or ISO string in response
+  status: 'PENDING' | 'CONFIRMED';
   ordonnance?: Ordonnance;
 }
 

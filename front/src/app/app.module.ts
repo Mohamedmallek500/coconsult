@@ -19,6 +19,8 @@ import { ContactComponent } from './contact/contact.component';
 import { LoginComponent } from './login/login.component';
 import { AdminUserManagementComponent } from './admin-user-management/admin-user-management.component';
 import { AppointmentBookingComponent } from './appointment-booking/appointment-booking.component';
+import { AuthInterceptor } from './auth.interceptor';
+import { DoctorAppointmentsComponent } from './doctor-appointments/doctor-appointments.component';
 
 @NgModule({
   declarations: [
@@ -34,7 +36,8 @@ import { AppointmentBookingComponent } from './appointment-booking/appointment-b
     LoginComponent,
     AdminUserManagementComponent,
     AppointmentBookingComponent,
-    
+    DoctorAppointmentsComponent,
+
   ],
   imports: [
     BrowserModule,
@@ -44,10 +47,12 @@ import { AppointmentBookingComponent } from './appointment-booking/appointment-b
     CommonModule,
     HttpClientModule,
     FullCalendarModule
-    
+
 
   ],
-  providers: [],
+  providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

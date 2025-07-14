@@ -126,7 +126,10 @@ export class AppointmentBookingComponent implements OnInit {
                       
                       this.currentUser = currentUser;
                       
-                      const events: EventInput[] = appointments.map(appointment => ({
+                      // Filter appointments to only include CONFIRMED status
+                      const confirmedAppointments = appointments.filter(appointment => appointment.status === 'CONFIRMED');
+                      
+                      const events: EventInput[] = confirmedAppointments.map(appointment => ({
                         title: 'Booked',
                         start: new Date(appointment.date),
                         end: new Date(new Date(appointment.date).getTime() + 30 * 60 * 1000),
@@ -195,8 +198,7 @@ export class AppointmentBookingComponent implements OnInit {
       this.selectedSlot = { start, end };
       this.errorMessage = null;
     } else {
-      this.errorMessage = 'Selected time is outside doctor\'s working hours';
-      this.selectedSlot = null;
+      this.errorMessage = 'Selected time is outside doctor\'s working hours or already booked';
     }
   }
 
@@ -288,15 +290,18 @@ export class AppointmentBookingComponent implements OnInit {
   }
 
   private handleBookingSuccess(appointment: any): void {
-    const newEvent = {
-      title: 'Booked',
-      start: this.selectedSlot!.start,
-      end: this.selectedSlot!.end,
-      editable: false,
-      color: '#dc3545'
-    };
+    // Only add the event to the calendar if the appointment is CONFIRMED
+    if (appointment.status === 'CONFIRMED') {
+      const newEvent = {
+        title: 'Booked',
+        start: this.selectedSlot!.start,
+        end: this.selectedSlot!.end,
+        editable: false,
+        color: '#dc3545'
+      };
 
-    this.calendarOptions.events = [...(this.calendarOptions.events as EventInput[]), newEvent];
+      this.calendarOptions.events = [...(this.calendarOptions.events as EventInput[]), newEvent];
+    }
     
     this.selectedSlot = null;
     this.isBooking = false;
@@ -309,7 +314,7 @@ export class AppointmentBookingComponent implements OnInit {
     
     let errorMsg = 'Failed to book appointment';
     if (error.status === 0) {
-      errorMsg = 'Could not connect to server. Please verify the backend is running on port 9090 and check your network connection.';
+      errorMsg = 'Could not connect to server. Please verify the backend is running on port 8080 and check your network connection.';
     } else if (error.status === 401) {
       errorMsg = 'Authentication failed. Please log in again.';
     } else if (error.status === 400 && error.error?.message) {

@@ -6,6 +6,7 @@ import { LoginComponent } from './login/login.component';
 import { AdminUserManagementComponent } from './admin-user-management/admin-user-management.component';
 import { AuthGuard } from './auth.guard';
 import { AppointmentBookingComponent } from './appointment-booking/appointment-booking.component';
+import { DoctorAppointmentsComponent } from './doctor-appointments/doctor-appointments.component';
 
 const routes: Routes = [
   {
@@ -35,6 +36,12 @@ const routes: Routes = [
     path: 'appointment/book/:id',
     pathMatch: 'full',
     component: AppointmentBookingComponent,
+    canActivate: [AuthGuard]
+  },
+    {
+    path: 'doctor-appointments',
+    pathMatch: 'full',
+    component: DoctorAppointmentsComponent,
     canActivate: [AuthGuard]
   },
 

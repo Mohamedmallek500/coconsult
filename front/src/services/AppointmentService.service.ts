@@ -12,15 +12,14 @@ export class AppointmentService {
 
   constructor(private http: HttpClient) {}
 
-getAppointmentsByDoctor(doctorId: number): Observable<Appointment[]> {
-  const url = `${this.apiUrl}/doctor/${doctorId}`;
-  return this.http.get<Appointment[]>(url, { withCredentials: true }).pipe(
-    catchError(error =>
-      throwError(() => new Error(error.error?.message || 'Failed to fetch appointments'))
-    )
-  );
-}
-
+  getAppointmentsByDoctor(doctorId: number): Observable<Appointment[]> {
+    const url = `${this.apiUrl}/doctor/${doctorId}`;
+    return this.http.get<Appointment[]>(url, { withCredentials: true }).pipe(
+      catchError(error =>
+        throwError(() => new Error(error.error?.message || 'Failed to fetch appointments'))
+      )
+    );
+  }
 
   createAppointment(appointment: AppointmentRequest): Observable<any> {
     return this.http.post(this.apiUrl, appointment, {
@@ -28,12 +27,11 @@ getAppointmentsByDoctor(doctorId: number): Observable<Appointment[]> {
       headers: {
         'Content-Type': 'application/json'
       },
-      observe: 'response' // Pour voir la réponse complète
+      observe: 'response'
     }).pipe(
       catchError(error => {
         console.error('Erreur complète:', error);
         
-        // Message d'erreur plus précis
         let errorMsg = 'Erreur lors de la réservation';
         if (error.status === 0) {
           errorMsg = 'Impossible de se connecter au serveur. Vérifiez que le serveur est démarré et accessible.';
@@ -46,6 +44,90 @@ getAppointmentsByDoctor(doctorId: number): Observable<Appointment[]> {
         return throwError(() => new Error(errorMsg));
       })
     );
+  }
 
+  confirmAppointment(appointmentId: number): Observable<Appointment> {
+    const url = `${this.apiUrl}/${appointmentId}/confirm`;
+    return this.http.post<Appointment>(url, null, { withCredentials: true }).pipe(
+      catchError(error => {
+        console.error('Erreur complète:', error);
+        
+        let errorMsg = 'Erreur lors de la confirmation du rendez-vous';
+        if (error.status === 0) {
+          errorMsg = 'Impossible de se connecter au serveur. Vérifiez que le serveur est démarré et accessible.';
+        } else if (error.status === 401) {
+          errorMsg = 'Authentification requise. Veuillez vous reconnecter.';
+        } else if (error.status === 400) {
+          errorMsg = error.error?.message || 'Le rendez-vous est déjà confirmé ou invalide.';
+        } else if (error.error?.message) {
+          errorMsg = error.error.message;
+        }
+        
+        return throwError(() => new Error(errorMsg));
+      })
+    );
+  }
+
+  getAppointmentById(appointmentId: number): Observable<Appointment> {
+    const url = `${this.apiUrl}/${appointmentId}`;
+    return this.http.get<Appointment>(url, { withCredentials: true }).pipe(
+      catchError(error => {
+        console.error('Erreur complète:', error);
+        
+        let errorMsg = 'Erreur lors de la récupération du rendez-vous';
+        if (error.status === 0) {
+          errorMsg = 'Impossible de se connecter au serveur. Vérifiez que le serveur est démarré et accessible.';
+        } else if (error.status === 401) {
+          errorMsg = 'Authentification requise. Veuillez vous reconnecter.';
+        } else if (error.status === 404) {
+          errorMsg = 'Rendez-vous non trouvé.';
+        } else if (error.error?.message) {
+          errorMsg = error.error.message;
+        }
+        
+        return throwError(() => new Error(errorMsg));
+      })
+    );
+  }
+
+  getAllAppointments(): Observable<Appointment[]> {
+    return this.http.get<Appointment[]>(this.apiUrl, { withCredentials: true }).pipe(
+      catchError(error => {
+        console.error('Erreur complète:', error);
+        
+        let errorMsg = 'Erreur lors de la récupération des rendez-vous';
+        if (error.status === 0) {
+          errorMsg = 'Impossible de se connecter au serveur. Vérifiez que le serveur est démarré et accessible.';
+        } else if (error.status === 401) {
+          errorMsg = 'Authentification requise. Veuillez vous reconnecter.';
+        } else if (error.error?.message) {
+          errorMsg = error.error.message;
+        }
+        
+        return throwError(() => new Error(errorMsg));
+      })
+    );
+  }
+
+  deleteAppointment(appointmentId: number): Observable<void> {
+    const url = `${this.apiUrl}/${appointmentId}`;
+    return this.http.delete<void>(url, { withCredentials: true }).pipe(
+      catchError(error => {
+        console.error('Erreur complète:', error);
+        
+        let errorMsg = 'Erreur lors de la suppression du rendez-vous';
+        if (error.status === 0) {
+          errorMsg = 'Impossible de se connecter au serveur. Vérifiez que le serveur est démarré et accessible.';
+        } else if (error.status === 401) {
+          errorMsg = 'Authentification requise. Veuillez vous reconnecter.';
+        } else if (error.status === 404) {
+          errorMsg = 'Rendez-vous non trouvé.';
+        } else if (error.error?.message) {
+          errorMsg = error.error.message;
+        }
+        
+        return throwError(() => new Error(errorMsg));
+      })
+    );
   }
 }
