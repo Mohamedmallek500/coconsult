@@ -7,6 +7,7 @@ import { AdminUserManagementComponent } from './admin-user-management/admin-user
 import { AuthGuard } from './auth.guard';
 import { AppointmentBookingComponent } from './appointment-booking/appointment-booking.component';
 import { DoctorAppointmentsComponent } from './doctor-appointments/doctor-appointments.component';
+import { DoctorPatientsListComponent } from './doctor-patients-list/doctor-patients-list.component';
 
 const routes: Routes = [
   {
@@ -42,6 +43,12 @@ const routes: Routes = [
     path: 'doctor-appointments',
     pathMatch: 'full',
     component: DoctorAppointmentsComponent,
+    canActivate: [AuthGuard]
+  },
+      {
+    path: 'doctor-patients',
+    pathMatch: 'full',
+    component: DoctorPatientsListComponent,
     canActivate: [AuthGuard]
   },
 

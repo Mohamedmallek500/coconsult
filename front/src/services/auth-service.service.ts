@@ -19,37 +19,42 @@ export class AuthServiceService {
     this.checkInitialAuthStatus();
   }
 
-  login(email: string, password: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/signin`, { email, password }, { withCredentials: true }).pipe(
-      tap((response: any) => {
-        this.isAuthenticatedSubject.next(true);
-        const userName = response?.username;
-        const userRole = response?.roles?.[0];
-        const userId = response?.id;
-        if (userName) {
-          sessionStorage.setItem('user_name', userName);
-          this.userNameSubject.next(userName);
-        }
-        if (userRole) {
-          sessionStorage.setItem('user_role', userRole);
-          this.userRoleSubject.next(userRole);
-        }
-        if (userId) {
-          sessionStorage.setItem('user_id', userId.toString());
-          this.userIdSubject.next(userId);
-        }
-      }),
-      catchError(error => {
-        let message = 'Échec de la connexion';
-        if (error.status === 401) {
-          message = 'Email ou mot de passe incorrect';
-        } else if (error.error?.message) {
-          message = error.error.message;
-        }
-        return throwError(() => new Error(message));
-      })
-    );
-  }
+login(email: string, password: string): Observable<any> {
+  return this.http.post(`${this.baseUrl}/signin`, { email, password }, { withCredentials: true }).pipe(
+    tap((response: any) => {
+      console.log('Login response:', response); // Log the response
+      this.isAuthenticatedSubject.next(true);
+      const userName = response?.username;
+      const userRole = response?.roles?.[0];
+      const userId = response?.id;
+      if (userName) {
+        sessionStorage.setItem('user_name', userName);
+        this.userNameSubject.next(userName);
+        console.log('Set user_name:', userName); // Log storage update
+      }
+      if (userRole) {
+        sessionStorage.setItem('user_role', userRole);
+        this.userRoleSubject.next(userRole);
+        console.log('Set user_role:', userRole);
+      }
+      if (userId) {
+        sessionStorage.setItem('user_id', userId.toString());
+        this.userIdSubject.next(userId);
+        console.log('Set user_id:', userId);
+      }
+    }),
+    catchError(error => {
+      console.error('Login error:', error); // Log any errors
+      let message = 'Échec de la connexion';
+      if (error.status === 401) {
+        message = 'Email ou mot de passe incorrect';
+      } else if (error.error?.message) {
+        message = error.error.message;
+      }
+      return throwError(() => new Error(message));
+    })
+  );
+}
 
   registerPatient(user: User, image: File | null = null): Observable<any> {
     const formData = new FormData();

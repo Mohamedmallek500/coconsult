@@ -122,7 +122,7 @@ export class AppointmentBookingComponent implements OnInit {
                         title: 'Booked',
                         start: new Date(appointment.date),
                         end: new Date(new Date(appointment.date).getTime() + 30 * 60 * 1000),
-                        color: '#dc3545',
+                        color: '#28a745',
                         editable: false
                       })));
 

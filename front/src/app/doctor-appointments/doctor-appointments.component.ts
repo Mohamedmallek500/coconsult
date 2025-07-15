@@ -245,7 +245,7 @@ export class DoctorAppointmentsComponent implements OnInit {
         title: this.getEventTitle(appointment) + suffix,
         start: new Date(appointment.date),
         end: new Date(new Date(appointment.date).getTime() + 30 * 60 * 1000),
-        color: appointment.status === 'CONFIRMED' ? '#dc3545' : '#ffc107',
+        color: appointment.status === 'CONFIRMED' ? '#28a745' : '#ffc107',
         editable: false
       };
     });

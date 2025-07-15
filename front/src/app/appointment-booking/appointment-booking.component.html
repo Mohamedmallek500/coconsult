@@ -63,7 +63,7 @@
     <div class="card">
       <div class="card-header">
         <h5 class="card-title mb-0">Available Time Slots</h5>
-        <small class="text-muted">Red: Confirmed appointments | Yellow: Your pending appointments | Click on an available time slot to book</small>
+        <small class="text-muted">Green: Confirmed appointments | Yellow: Your pending appointments | Click on an available time slot to book</small>
       </div>
       <div class="card-body">
         <full-calendar [options]="calendarOptions"></full-calendar>
@@ -144,11 +144,11 @@
     <ol>
       <li>Look at the calendar above and find an available time slot</li>
       <li>Yellow slots indicate your pending appointments, which are awaiting doctor approval</li>
-      <li>Click on an available time slot (not red or yellow) to book a new appointment</li>
+      <li>Click on an available time slot (not Green or Yellow) to book a new appointment</li>
       <li>Confirm your appointment details</li>
       <li>Click "Confirm Booking" to complete your appointment</li>
     </ol>
-    <p class="mb-0"><strong>Note:</strong> Red slots are confirmed appointments booked by other patients. Your pending appointments are shown in yellow.</p>
+    <p class="mb-0"><strong>Note:</strong> Green slots are confirmed appointments booked by other patients. Your pending appointments are shown in yellow.</p>
   </div>
 </div>
 

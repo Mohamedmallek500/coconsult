@@ -1,0 +1,108 @@
+<div class="patients-container">
+  <div class="header">
+    <h2>Les patients du Doctor {{ doctorName || 'Docteur' }}</h2>
+    <button class="refresh-btn" (click)="loadPatientsList()" [disabled]="loading">
+      <i class="fas fa-sync-alt" [class.spinning]="loading"></i>
+      Actualiser
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Chargement des patients...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-container" *ngIf="error && !loading">
+    <div class="error-message">
+      <i class="fas fa-exclamation-triangle"></i>
+      {{ error }}
+    </div>
+    <button class="retry-btn" (click)="loadPatientsList()">Réessayer</button>
+  </div>
+
+  <!-- Patients List -->
+  <div class="patients-list" *ngIf="!loading && !error">
+    <div class="patients-summary" *ngIf="patientsList.length > 0">
+      <p><strong>{{ patientsList.length }}</strong> patient(s) trouvé(s)</p>
+    </div>
+
+    <div class="no-patients" *ngIf="patientsList.length === 0">
+      <i class="fas fa-users"></i>
+      <p>Aucun patient trouvé</p>
+    </div>
+
+    <div class="patient-card" *ngFor="let patientData of patientsList">
+      <div class="patient-header" (click)="togglePatientExpansion(patientData.patient.id!)">
+        <div class="patient-info">
+          <div class="patient-avatar">
+            <img [src]="getImageUrl(patientData.patient.image)" 
+                 [alt]="patientData.patient.nom + ' ' + patientData.patient.prenom">
+          </div>
+          <div class="patient-details">
+            <h3>{{ patientData.patient.nom }} {{ patientData.patient.prenom }}</h3>
+            <p class="patient-meta">
+              <i class="fas fa-envelope"></i> {{ patientData.patient.email }}
+            </p>
+            <p class="patient-meta" *ngIf="patientData.patient.numtel">
+              <i class="fas fa-phone"></i> {{ patientData.patient.numtel }}
+            </p>
+          </div>
+        </div>
+        <div class="patient-stats">
+          <div class="appointment-count">
+            <span class="count">{{ patientData.appointmentCount }}</span>
+            <span class="label">Rendez-vous</span>
+          </div>
+          <div class="expand-icon" [class.expanded]="isPatientExpanded(patientData.patient.id!)">
+            <i class="fas fa-chevron-down"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appointments List (Collapsible) -->
+      <div class="appointments-container" *ngIf="isPatientExpanded(patientData.patient.id!)">
+        <div class="appointments-header">
+          <h4>Rendez-vous</h4>
+        </div>
+        <div class="appointments-list">
+          <div class="appointment-item" *ngFor="let appointment of patientData.appointments">
+            <div class="appointment-info">
+              <div class="appointment-date">
+                <i class="fas fa-calendar"></i>
+                {{ formatDate(appointment.date) }}
+              </div>
+              <div class="appointment-status">
+                <span class="status-badge" [class]="getStatusClass(appointment.status)">
+                  {{ getStatusText(appointment.status) }}
+                </span>
+              </div>
+            </div>
+            <div class="appointment-actions">
+              <button class="action-btn confirm-btn" 
+                      *ngIf="appointment.status === 'PENDING'"
+                      (click)="confirmAppointment(appointment.id!)"
+                      title="Confirmer le rendez-vous">
+                <i class="fas fa-check"></i>
+              </button>
+
+
+              
+              <button class="action-btn prescription-btn" 
+                      *ngIf="appointment.status === 'CONFIRMED'"
+                      title="Voir l'ordonnance">
+                <i class="fas fa-prescription-bottle"></i>
+              </button>
+              <button class="action-btn delete-btn" 
+                      (click)="deleteAppointment(appointment.id!)"
+                      title="Supprimer le rendez-vous">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

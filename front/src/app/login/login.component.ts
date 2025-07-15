@@ -55,6 +55,15 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
     this.loadMaladies();
     this.updateFormValidators();
+    // Check if already authenticated
+    this.authService.isAuthenticated$.subscribe(isAuthenticated => {
+      if (isAuthenticated) {
+        this.authService.userRole$.subscribe(role => {
+          const redirectUrl = role === 'doctor' ? '/home' : '/home';
+          this.router.navigate([redirectUrl]);
+        });
+      }
+    });
   }
 
   loadMaladies(): void {
@@ -160,6 +169,11 @@ export class LoginComponent implements OnInit {
     this.authService.login(email, password).subscribe({
       next: (response) => {
         this.isLoading = false;
+        console.log('Login successful, sessionStorage:', {
+          user_name: sessionStorage.getItem('user_name'),
+          user_role: sessionStorage.getItem('user_role'),
+          user_id: sessionStorage.getItem('user_id')
+        }); // Log sessionStorage
         const role = response.roles?.[0] || 'patient';
         const redirectUrl = role === 'doctor' ? '/home' : '/home';
         this.router.navigate([redirectUrl]);
@@ -167,6 +181,7 @@ export class LoginComponent implements OnInit {
       error: (err) => {
         this.isLoading = false;
         this.errorMessage = err.message || 'Échec de la connexion';
+        console.error('Login failed:', err);
       }
     });
   }

@@ -22,6 +22,7 @@ import { AppointmentBookingComponent } from './appointment-booking/appointment-b
 import { AuthInterceptor } from './auth.interceptor';
 import { DoctorAppointmentsComponent } from './doctor-appointments/doctor-appointments.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { DoctorPatientsListComponent } from './doctor-patients-list/doctor-patients-list.component';
 
 @NgModule({
   declarations: [
@@ -38,6 +39,7 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
     AdminUserManagementComponent,
     AppointmentBookingComponent,
     DoctorAppointmentsComponent,
+    DoctorPatientsListComponent,
 
   ],
   imports: [
