@@ -178,26 +178,34 @@ export class AppointmentBookingComponent implements OnInit {
     });
   }
 
-  handleDateClick(info: any): void {
-    const start = new Date(info.dateStr);
-    const end = new Date(start.getTime() + 30 * 60 * 1000);
-    const isBusinessHour = this.isWithinBusinessHours(start);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+handleDateClick(info: any): void {
+  const start = new Date(info.dateStr);
+  const end = new Date(start.getTime() + 30 * 60 * 1000);
+  const now = new Date();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-    if (start < today) {
-      this.errorMessage = 'Cannot book appointments for past dates';
-      return;
-    }
-
-    if (isBusinessHour && !this.isSlotBooked(start)) {
-      this.selectedSlot = { start, end };
-      this.errorMessage = null;
-      this.openModal();
-    } else {
-      this.errorMessage = 'Selected time is outside doctor\'s working hours or already booked';
-    }
+  // Check if the selected date is in the past
+  if (start < today) {
+    this.errorMessage = 'Cannot book appointments for past dates';
+    return;
   }
+
+  // Check if the selected time is in the past on the current day
+  if (start.toDateString() === now.toDateString() && start <= now) {
+    this.errorMessage = 'Cannot book appointments for past times on the current day';
+    return;
+  }
+
+  const isBusinessHour = this.isWithinBusinessHours(start);
+  if (isBusinessHour && !this.isSlotBooked(start)) {
+    this.selectedSlot = { start, end };
+    this.errorMessage = null;
+    this.openModal();
+  } else {
+    this.errorMessage = 'Selected time is outside doctor\'s working hours or already booked';
+  }
+}
 
   handleEventClick(info: any): void {
     const eventStart = new Date(info.event.start);
