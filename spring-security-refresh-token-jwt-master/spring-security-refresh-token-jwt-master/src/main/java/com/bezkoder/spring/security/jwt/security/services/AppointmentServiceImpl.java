@@ -52,7 +52,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setPatient(patient);
         appointment.setDate(appointmentDTO.getDate());
         appointment.setOrdonnance(ordonnance);
-        appointment.setStatus(AppointmentStatus.PENDING); // Statut par défaut PENDING
+        appointment.setStatus(AppointmentStatus.PENDING);
         appointment = appointmentRepository.save(appointment);
         return convertToDTO(appointment);
     }
@@ -153,17 +153,6 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .collect(Collectors.toList());
     }
 
-    private AppointmentDTO convertToDTO(Appointment appointment) {
-        return new AppointmentDTO(
-                appointment.getId(),
-                appointment.getDoctor().getId(),
-                appointment.getPatient().getId(),
-                appointment.getDate(),
-                appointment.getOrdonnance() != null ? appointment.getOrdonnance().getId() : null,
-                appointment.getStatus()
-        );
-    }
-
     @Override
     @Transactional
     public void cancelExpiredAppointments() {
@@ -178,5 +167,36 @@ public class AppointmentServiceImpl implements AppointmentService {
         } else {
             System.out.println("No expired appointments found to cancel");
         }
+    }
+
+    @Override
+    @Transactional
+    public void deleteExpiredCancelledAppointments() {
+        LocalDateTime cutoffTime = LocalDateTime.now().minusHours(24); // Delete CANCELLED appointments older than 24 hours
+        List<Appointment> cancelledAppointments = appointmentRepository
+                .findCancelledAppointmentsOlderThan(AppointmentStatus.CANCELLED, cutoffTime);
+
+        if (!cancelledAppointments.isEmpty()) {
+            cancelledAppointments.forEach(appointment -> {
+                if (appointment.getOrdonnance() != null) {
+                    ordonnanceRepository.delete(appointment.getOrdonnance());
+                }
+                appointmentRepository.delete(appointment);
+            });
+            System.out.println("Deleted " + cancelledAppointments.size() + " expired cancelled appointments");
+        } else {
+            System.out.println("No expired cancelled appointments found to delete");
+        }
+    }
+
+    private AppointmentDTO convertToDTO(Appointment appointment) {
+        return new AppointmentDTO(
+                appointment.getId(),
+                appointment.getDoctor().getId(),
+                appointment.getPatient().getId(),
+                appointment.getDate(),
+                appointment.getOrdonnance() != null ? appointment.getOrdonnance().getId() : null,
+                appointment.getStatus()
+        );
     }
 }

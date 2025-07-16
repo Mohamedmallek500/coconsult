@@ -10,9 +10,9 @@ public class AppointmentScheduler {
     @Autowired
     private AppointmentService appointmentService;
 
-    // Exécute toutes les 10 minutes
     @Scheduled(cron = "0 */10 * * * *")
-    public void cancelExpiredAppointments() {
+    public void manageAppointments() {
         appointmentService.cancelExpiredAppointments();
+        appointmentService.deleteExpiredCancelledAppointments();
     }
 }
