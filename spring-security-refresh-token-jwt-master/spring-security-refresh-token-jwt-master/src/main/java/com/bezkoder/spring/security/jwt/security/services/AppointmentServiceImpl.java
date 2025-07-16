@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -161,5 +162,21 @@ public class AppointmentServiceImpl implements AppointmentService {
                 appointment.getOrdonnance() != null ? appointment.getOrdonnance().getId() : null,
                 appointment.getStatus()
         );
+    }
+
+    @Override
+    @Transactional
+    public void cancelExpiredAppointments() {
+        LocalDateTime cutoffTime = LocalDateTime.now().minusHours(1);
+        List<Appointment> expiredAppointments = appointmentRepository
+                .findPendingAppointmentsOlderThan(AppointmentStatus.PENDING, cutoffTime);
+
+        if (!expiredAppointments.isEmpty()) {
+            expiredAppointments.forEach(appointment -> appointment.setStatus(AppointmentStatus.CANCELLED));
+            appointmentRepository.saveAll(expiredAppointments);
+            System.out.println("Cancelled " + expiredAppointments.size() + " expired appointments");
+        } else {
+            System.out.println("No expired appointments found to cancel");
+        }
     }
 }

@@ -9,8 +9,8 @@ export interface Appointment {
   patient: User | number;
   doctor: User | number;
   date: Date;
-  ordonnanceId?: number;
-  status: 'PENDING' | 'CONFIRMED';
+ordonnanceId: number | null;
+  status: 'PENDING' | 'CONFIRMED'| 'CANCELLED';
 }
 
 export interface AppointmentRequest {

@@ -233,9 +233,10 @@ export class DoctorAppointmentsComponent implements OnInit {
       }
     });
   }
-
-  updateCalendarEvents(): void {
-    const events: EventInput[] = this.appointments.map(appointment => {
+updateCalendarEvents(): void {
+  const events: EventInput[] = this.appointments
+    .filter(appointment => appointment.status !== 'CANCELLED') // Exclure les rendez-vous annulés
+    .map(appointment => {
       const sameTimeAppointments = this.appointments.filter(app =>
         app.date.getTime() === appointment.date.getTime() && app.status === 'PENDING'
       ).length;
@@ -250,11 +251,11 @@ export class DoctorAppointmentsComponent implements OnInit {
       };
     });
 
-    this.calendarOptions = {
-      ...this.calendarOptions,
-      events: events
-    };
-  }
+  this.calendarOptions = {
+    ...this.calendarOptions,
+    events: events
+  };
+}
 
   handleEventClick(info: EventClickArg): void {
     const appointmentId = Number(info.event.id);

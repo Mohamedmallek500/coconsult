@@ -4,6 +4,8 @@ import { User } from 'src/models/User.model';
 import { AppointmentService } from 'src/services/AppointmentService.service';
 import { AuthServiceService } from 'src/services/auth-service.service';
 import { UserService } from 'src/services/UserService.service';
+import { OrdonnanceModalComponent } from '../ordonnance-modal/ordonnance-modal.component';
+import { MatDialog } from '@angular/material/dialog';
 
 interface PatientWithAppointments {
   patient: User;
@@ -27,7 +29,8 @@ export class DoctorPatientsListComponent implements OnInit {
   constructor(
     private appointmentService: AppointmentService,
     private authService: AuthServiceService,
-    private userService: UserService
+    private userService: UserService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -61,58 +64,59 @@ export class DoctorPatientsListComponent implements OnInit {
       }
     });
   }
-
-  private processAppointments(appointments: Appointment[]): void {
-    // Convert date strings to Date objects
-    const normalizedAppointments = appointments.map(appointment => ({
+private processAppointments(appointments: Appointment[]): void {
+  // Convertir les chaînes de date en objets Date et filtrer les rendez-vous CANCELLED
+  const normalizedAppointments = appointments
+    .filter(appointment => appointment.status !== 'CANCELLED')
+    .map(appointment => ({
       ...appointment,
       date: typeof appointment.date === 'string' ? new Date(appointment.date) : appointment.date
     }));
 
-    // Grouper les rendez-vous par patient
-    const patientAppointmentsMap = new Map<number, Appointment[]>();
-    
-    normalizedAppointments.forEach(appointment => {
-      const patientId = appointment.patientId;
-      if (patientId) {
-        if (!patientAppointmentsMap.has(patientId)) {
-          patientAppointmentsMap.set(patientId, []);
-        }
-        patientAppointmentsMap.get(patientId)!.push(appointment);
+  // Grouper les rendez-vous par patient
+  const patientAppointmentsMap = new Map<number, Appointment[]>();
+  
+  normalizedAppointments.forEach(appointment => {
+    const patientId = appointment.patientId;
+    if (patientId) {
+      if (!patientAppointmentsMap.has(patientId)) {
+        patientAppointmentsMap.set(patientId, []);
       }
-    });
+      patientAppointmentsMap.get(patientId)!.push(appointment);
+    }
+  });
 
-    // Récupérer les informations des patients
-    const patientIds = Array.from(patientAppointmentsMap.keys());
-    const patientRequests = patientIds.map(id => 
-      this.userService.getUserById(id).toPromise()
-    );
+  // Récupérer les informations des patients
+  const patientIds = Array.from(patientAppointmentsMap.keys());
+  const patientRequests = patientIds.map(id => 
+    this.userService.getUserById(id).toPromise()
+  );
 
-    Promise.all(patientRequests).then(patients => {
-      this.patientsList = patients.map(patient => {
-        const patientAppointments = patientAppointmentsMap.get(patient!.id!) || [];
-        
-        // Trier les rendez-vous par date (plus récent en premier)
-        patientAppointments.sort((a, b) => 
-          b.date.getTime() - a.date.getTime()
-        );
-
-        return {
-          patient: patient!,
-          appointments: patientAppointments,
-          appointmentCount: patientAppointments.length
-        };
-      });
-
-      // Trier les patients par nombre de rendez-vous (plus actifs en premier)
-      this.patientsList.sort((a, b) => b.appointmentCount - a.appointmentCount);
+  Promise.all(patientRequests).then(patients => {
+    this.patientsList = patients.map(patient => {
+      const patientAppointments = patientAppointmentsMap.get(patient!.id!) || [];
       
-      this.loading = false;
-    }).catch(error => {
-      this.error = 'Erreur lors du chargement des informations des patients';
-      this.loading = false;
+      // Trier les rendez-vous par date (plus récent en premier)
+      patientAppointments.sort((a, b) => 
+        b.date.getTime() - a.date.getTime()
+      );
+
+      return {
+        patient: patient!,
+        appointments: patientAppointments,
+        appointmentCount: patientAppointments.length
+      };
     });
-  }
+
+    // Trier les patients par nombre de rendez-vous (plus actifs en premier)
+    this.patientsList.sort((a, b) => b.appointmentCount - a.appointmentCount);
+    
+    this.loading = false;
+  }).catch(error => {
+    this.error = 'Erreur lors du chargement des informations des patients';
+    this.loading = false;
+  });
+}
 
   togglePatientExpansion(patientId: number): void {
     if (this.expandedPatients.has(patientId)) {
@@ -188,6 +192,13 @@ export class DoctorPatientsListComponent implements OnInit {
         }
       });
     }
+  }
+
+  openOrdonnanceModal(ordonnanceId: number | null): void {
+    this.dialog.open(OrdonnanceModalComponent, {
+      width: '600px',
+      data: { ordonnanceId }
+    });
   }
 
     getImageUrl(imagePath: string | undefined): string {

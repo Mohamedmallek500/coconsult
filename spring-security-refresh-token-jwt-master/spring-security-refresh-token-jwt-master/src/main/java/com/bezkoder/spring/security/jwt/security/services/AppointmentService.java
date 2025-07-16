@@ -13,4 +13,6 @@ public interface AppointmentService {
     List<AppointmentDTO> getAppointmentsByDoctorId(Long doctorId);
     AppointmentDTO confirmAppointment(Long id);
     List<AppointmentDTO> getAppointmentsByPatient(Long patientId); // Added method
+    // Nouvelle méthode pour annuler les rendez-vous expirés
+    void cancelExpiredAppointments();
 }

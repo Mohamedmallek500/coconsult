@@ -12,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/ordonnances")
+@CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
 public class OrdonnanceController {
 
     @Autowired

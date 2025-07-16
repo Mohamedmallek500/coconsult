@@ -23,6 +23,8 @@ import { AuthInterceptor } from './auth.interceptor';
 import { DoctorAppointmentsComponent } from './doctor-appointments/doctor-appointments.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { DoctorPatientsListComponent } from './doctor-patients-list/doctor-patients-list.component';
+import { OrdonnanceModalComponent } from './ordonnance-modal/ordonnance-modal.component';
+import { MatDialogModule } from '@angular/material/dialog';
 
 @NgModule({
   declarations: [
@@ -40,6 +42,7 @@ import { DoctorPatientsListComponent } from './doctor-patients-list/doctor-patie
     AppointmentBookingComponent,
     DoctorAppointmentsComponent,
     DoctorPatientsListComponent,
+    OrdonnanceModalComponent,
 
   ],
   imports: [
@@ -50,7 +53,8 @@ import { DoctorPatientsListComponent } from './doctor-patients-list/doctor-patie
     CommonModule,
     HttpClientModule,
     FullCalendarModule,
-    NgbModule
+    NgbModule,
+    MatDialogModule
 
 
   ],
