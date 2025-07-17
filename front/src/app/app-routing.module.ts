@@ -8,6 +8,7 @@ import { AuthGuard } from './auth.guard';
 import { AppointmentBookingComponent } from './appointment-booking/appointment-booking.component';
 import { DoctorAppointmentsComponent } from './doctor-appointments/doctor-appointments.component';
 import { DoctorPatientsListComponent } from './doctor-patients-list/doctor-patients-list.component';
+import { MedicamentManagementComponent } from './medicament-management/medicament-management.component';
 
 const routes: Routes = [
   {
@@ -39,16 +40,22 @@ const routes: Routes = [
     component: AppointmentBookingComponent,
     canActivate: [AuthGuard]
   },
-    {
+  {
     path: 'doctor-appointments',
     pathMatch: 'full',
     component: DoctorAppointmentsComponent,
     canActivate: [AuthGuard]
   },
-      {
+  {
     path: 'doctor-patients',
     pathMatch: 'full',
     component: DoctorPatientsListComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'admin/medicaments',
+    pathMatch: 'full',
+    component: MedicamentManagementComponent,
     canActivate: [AuthGuard]
   },
 

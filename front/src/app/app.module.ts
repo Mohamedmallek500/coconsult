@@ -25,6 +25,7 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { DoctorPatientsListComponent } from './doctor-patients-list/doctor-patients-list.component';
 import { OrdonnanceModalComponent } from './ordonnance-modal/ordonnance-modal.component';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MedicamentManagementComponent } from './medicament-management/medicament-management.component';
 
 @NgModule({
   declarations: [
@@ -43,6 +44,7 @@ import { MatDialogModule } from '@angular/material/dialog';
     DoctorAppointmentsComponent,
     DoctorPatientsListComponent,
     OrdonnanceModalComponent,
+    MedicamentManagementComponent,
 
   ],
   imports: [
