@@ -86,14 +86,18 @@
                       title="Confirmer le rendez-vous">
                 <i class="fas fa-check"></i>
               </button>
-
-
-      <button class="action-btn prescription-btn" 
+              <button class="action-btn prescription-btn" 
                       *ngIf="appointment.status === 'CONFIRMED' && appointment.ordonnanceId"
                       (click)="openOrdonnanceModal(appointment.ordonnanceId)"
                       title="Voir l'ordonnance">
                 <i class="fas fa-prescription-bottle"></i>
               </button>
+<button class="action-btn edit-btn-blue" 
+        *ngIf="appointment.status === 'CONFIRMED' && appointment.ordonnanceId"
+        (click)="openUpdateOrdonnanceModal(appointment.ordonnanceId, patientData.patient.id!, appointment.doctorId!)"
+        title="Modifier l'ordonnance">
+  <i class="fas fa-edit"></i>
+</button>
               <button class="action-btn delete-btn" 
                       (click)="deleteAppointment(appointment.id!)"
                       title="Supprimer le rendez-vous">

@@ -1,0 +1,198 @@
+<div class="container-fluid p-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h3 class="card-title mb-0">Gestion des Maladies</h3>
+          <button class="btn btn-primary" (click)="openAddModal()" [disabled]="loading">
+            <i class="fas fa-plus"></i> Ajouter une maladie
+          </button>
+        </div>
+
+        <div class="card-body">
+          <!-- Success/Error Messages -->
+          <div *ngIf="success" class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ success }}
+            <button type="button" class="btn-close" (click)="clearMessages()" aria-label="Close"></button>
+          </div>
+          <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ error }}
+            <button type="button" class="btn-close" (click)="clearMessages()" aria-label="Close"></button>
+          </div>
+
+          <!-- Filters -->
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <div class="form-group">
+                <label for="filterName">Nom de la maladie:</label>
+                <input 
+                  type="text" 
+                  id="filterName" 
+                  class="form-control" 
+                  [(ngModel)]="filterName" 
+                  (input)="onFilterChange()"
+                  placeholder="Rechercher par nom...">
+              </div>
+            </div>
+          </div>
+
+          <!-- Maladies Table -->
+          <div class="table-responsive">
+            <table class="table table-striped table-hover">
+              <thead class="table-dark">
+                <tr>
+                  <th>ID</th>
+                  <th>Nom de la maladie</th>
+                  <th>Description</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="loading && filteredMaladies.length === 0">
+                  <td colspan="4" class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Chargement...</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="!loading && filteredMaladies.length === 0">
+                  <td colspan="4" class="text-center text-muted">
+                    Aucune maladie trouvée
+                  </td>
+                </tr>
+                <tr *ngFor="let maladie of filteredMaladies; trackBy: trackByFn">
+                  <td>{{ maladie.id }}</td>
+                  <td>
+                    <strong>{{ maladie.name }}</strong>
+                  </td>
+                  <td>
+                    <span *ngIf="maladie.description; else noDescription">
+                      {{ maladie.description }}
+                    </span>
+                    <ng-template #noDescription>
+                      <span class="text-muted">-</span>
+                    </ng-template>
+                  </td>
+                  <td class="text-center">
+                    <div class="btn-group" role="group">
+                      <button 
+                        class="action-btn btn-edit" 
+                        (click)="editMaladie(maladie)" 
+                        [disabled]="loading"
+                        title="Modifier">
+                        <i class="fas fa-edit action-icon"></i>
+                      </button>
+                      <button 
+                        class="action-btn btn-delete" 
+                        (click)="deleteMaladie(maladie.id!)" 
+                        [disabled]="loading"
+                        title="Supprimer">
+                        <i class="fas fa-trash action-icon"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <div>
+              <small class="text-muted">
+                Affichage {{ filteredMaladies.length }} maladie(s)
+              </small>
+            </div>
+            <nav>
+              <ul class="pagination mb-0">
+                <li class="page-item" [class.disabled]="currentPage === 0">
+                  <button class="page-link" (click)="prevPage()" [disabled]="currentPage === 0">
+                    Précédent
+                  </button>
+                </li>
+                <li class="page-item active">
+                  <span class="page-link">{{ currentPage + 1 }}</span>
+                </li>
+                <li class="page-item">
+                  <button class="page-link" (click)="nextPage()">
+                    Suivant
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Maladie Modal -->
+  <ng-template #maladieFormModal let-modal>
+    <div class="modal-header bg-primary text-white">
+      <h5 class="modal-title">{{ isEditing ? 'Modifier' : 'Ajouter' }} une maladie</h5>
+      <button type="button" class="btn-close btn-close-white" (click)="cancelEdit()" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="maladieForm" (ngSubmit)="onSubmit()">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="name" class="form-label">
+                Nom de la maladie <span class="text-danger">*</span>
+              </label>
+              <input 
+                type="text" 
+                class="form-control"
+                id="name"
+                formControlName="name"
+                [class.is-invalid]="maladieForm.get('name')?.invalid && maladieForm.get('name')?.touched"
+                placeholder="Entrez le nom de la maladie">
+              <div class="text-danger" 
+                   *ngIf="maladieForm.get('name')?.invalid && maladieForm.get('name')?.touched">
+                <div *ngIf="maladieForm.get('name')?.errors?.['required']">
+                  Le nom de la maladie est requis.
+                </div>
+                <div *ngIf="maladieForm.get('name')?.errors?.['maxlength']">
+                  Le nom ne peut pas dépasser 100 caractères.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="description" class="form-label">Description</label>
+              <textarea 
+                class="form-control"
+                id="description"
+                formControlName="description"
+                rows="4"
+                [class.is-invalid]="maladieForm.get('description')?.invalid && maladieForm.get('description')?.touched"
+                placeholder="Description (optionnel)"></textarea>
+              <div class="text-danger" 
+                   *ngIf="maladieForm.get('description')?.invalid && maladieForm.get('description')?.touched">
+                <div *ngIf="maladieForm.get('description')?.errors?.['maxlength']">
+                  La description ne peut pas dépasser 500 caractères.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button 
+            type="submit" 
+            class="btn btn-success me-2"
+            [disabled]="maladieForm.invalid || loading">
+            <i class="fas fa-save"></i> {{ isEditing ? 'Mettre à jour' : 'Créer' }}
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-secondary" 
+            (click)="cancelEdit()" 
+            [disabled]="loading">
+            <i class="fas fa-times"></i> Annuler
+          </button>
+        </div>
+      </form>
+    </div>
+  </ng-template>
+</div>

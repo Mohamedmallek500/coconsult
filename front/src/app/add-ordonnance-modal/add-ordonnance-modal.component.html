@@ -1,0 +1,60 @@
+<div class="modal-overlay">
+
+<div class="modal-container">
+  <h2>Modifier l'ordonnance</h2>
+  
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Chargement des médicaments...</p>
+  </div>
+  
+  <!-- Error State -->
+  <div class="error-container" *ngIf="error && !loading">
+    <div class="error-message">
+      <i class="fas fa-exclamation-triangle"></i>
+      {{ error }}
+    </div>
+  </div>
+  
+  <!-- Medicaments List -->
+  <div class="medicaments-list" *ngIf="!loading && !error">
+    <h4>Sélectionner les médicaments</h4>
+    
+    <!-- Empty State -->
+    <div class="empty-medicaments" *ngIf="medicaments.length === 0">
+      <p>Aucun médicament disponible</p>
+    </div>
+    
+    <!-- Medicaments -->
+    <div class="medicament-item" 
+         *ngFor="let medicament of medicaments"
+         [class.selected]="selectedMedicamentIds.includes(medicament.id!)"
+         (click)="toggleMedicamentSelection(medicament.id!)">
+      
+      <input type="checkbox"
+             [checked]="selectedMedicamentIds.includes(medicament.id!)"
+             (change)="toggleMedicamentSelection(medicament.id!)"
+             (click)="$event.stopPropagation()">
+      
+      <div class="medicament-content">
+        <span>{{ medicament.nomMedicament }}</span>
+        <p *ngIf="medicament.notes">{{ medicament.notes }}</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal Actions -->
+  <div class="modal-actions">
+    <button class="cancel-btn" (click)="onCancel()" [disabled]="loading">
+      Annuler
+    </button>
+    <button class="save-btn" 
+            (click)="updateOrdonnance()" 
+            [disabled]="loading || selectedMedicamentIds.length === 0">
+      <span *ngIf="loading">Enregistrement...</span>
+      <span *ngIf="!loading">Enregistrer</span>
+    </button>
+  </div>
+</div>
+</div>

@@ -5,6 +5,17 @@
   margin: 0 auto;
 }
 
+.edit-btn-blue {
+  background: #2980b9;
+  color: white;
+}
+
+.edit-btn-blue:hover {
+  background: #21618c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(41, 128, 185, 0.3);
+}
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -318,4 +329,6 @@
   .appointment-actions {
     justify-content: center;
   }
+
+  
 }
