@@ -41,12 +41,24 @@
                 <span>{{ ordonnance.patient?.nom || 'Inconnu' }} {{ ordonnance.patient?.prenom || '' }}</span>
               </div>
               
-         <!--       <div class="info-item" *ngIf="ordonnance.date">
+              <div class="info-item" *ngIf="ordonnance.patient?.dateNaissance">
                 <i class="fas fa-calendar"></i>
-                <strong>Date:</strong>
-                <span>{{ formatDate(ordonnance.date) }}</span>
+                <strong>Date naissance:</strong>
+<span>{{ formatDate(ordonnance.patient?.dateNaissance || '') }}</span>
               </div>
-            </div> -->
+
+              <div class="info-item" *ngIf="ordonnance.patient?.cin">
+                <i class="fas fa-id-card"></i>
+                <strong>CIN:</strong>
+<span>{{ ordonnance.patient?.cin || '' }}</span>
+              </div>
+
+              <div class="info-item" *ngIf="ordonnance.patient?.numCnss">
+                <i class="fas fa-shield-alt"></i>
+                <strong>N° CNSS:</strong>
+<span>{{ ordonnance.patient?.numCnss || '' }}</span>
+              </div>
+            </div>
 
             <div class="medications-section">
               <h4>Médicaments prescrits</h4>
@@ -77,10 +89,10 @@
         <i class="fas fa-times"></i>
         Fermer
       </button>
-     <!--   <button class="btn-primary" *ngIf="!loading && !error && ordonnance" (click)="printOrdonnance()">
+      <button class="btn-primary" *ngIf="!loading && !error && ordonnance" (click)="printOrdonnance()">
         <i class="fas fa-print"></i>
-        Imprimer
-      </button>  -->
+        Imprimer PDF
+      </button>
     </div>
   </div>
 </div>
