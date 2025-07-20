@@ -10,6 +10,7 @@ import { DoctorAppointmentsComponent } from './doctor-appointments/doctor-appoin
 import { DoctorPatientsListComponent } from './doctor-patients-list/doctor-patients-list.component';
 import { MedicamentManagementComponent } from './medicament-management/medicament-management.component';
 import { MaladieManagementComponent } from './maladie-management/maladie-management.component';
+import { PatientAppointmentsListComponent } from './patient-appointments-list/patient-appointments-list.component';
 
 const routes: Routes = [
   {
@@ -63,6 +64,12 @@ const routes: Routes = [
     path: 'admin/maladies',
     pathMatch: 'full',
     component: MaladieManagementComponent,
+    canActivate: [AuthGuard]
+  },
+      {
+    path: 'historique',
+    pathMatch: 'full',
+    component: PatientAppointmentsListComponent,
     canActivate: [AuthGuard]
   },
 

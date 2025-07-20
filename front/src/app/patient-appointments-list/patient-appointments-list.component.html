@@ -1,0 +1,115 @@
+<div class="appointments-container">
+  <div class="header">
+    <h2>Rendez-vous de {{ patientName || 'Patient' }}</h2>
+  </div>
+
+  <!-- Statistics Summary -->
+  <div class="stats-container" *ngIf="!loading && !error && appointmentsList.length > 0">
+    <div class="stat-card">
+      <div class="stat-number">{{ getTotalAppointments() }}</div>
+      <div class="stat-label">Total</div>
+    </div>
+    <div class="stat-card confirmed">
+      <div class="stat-number">{{ getConfirmedAppointments() }}</div>
+      <div class="stat-label">Confirmés</div>
+    </div>
+    <div class="stat-card pending">
+      <div class="stat-number">{{ getPendingAppointments() }}</div>
+      <div class="stat-label">En attente</div>
+    </div>
+    <div class="stat-card doctors">
+      <div class="stat-number">{{ appointmentsList.length }}</div>
+      <div class="stat-label">Docteurs</div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Chargement des rendez-vous...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-container" *ngIf="error && !loading">
+    <div class="error-message">
+      <i class="fas fa-exclamation-triangle"></i>
+      {{ error }}
+    </div>
+  </div>
+
+  <!-- Appointments List by Doctor -->
+  <div class="appointments-list" *ngIf="!loading && !error">
+    <div class="no-appointments" *ngIf="appointmentsList.length === 0">
+      <i class="fas fa-calendar-times"></i>
+      <p>Aucun rendez-vous trouvé</p>
+    </div>
+
+    <div class="doctor-card" *ngFor="let doctorData of appointmentsList">
+      <div class="doctor-header" (click)="toggleDoctorExpansion(doctorData.doctor.id!)">
+        <div class="doctor-info">
+          <div class="doctor-avatar">
+            <img [src]="getImageUrl(doctorData.doctor.image)" 
+                 [alt]="'Dr. ' + doctorData.doctor.nom + ' ' + doctorData.doctor.prenom">
+          </div>
+          <div class="doctor-details">
+            <h3>Dr. {{ doctorData.doctor.nom }} {{ doctorData.doctor.prenom }}</h3>
+            <p class="doctor-specialty" *ngIf="doctorData.doctor.speciality">
+              <i class="fas fa-stethoscope"></i> {{ doctorData.doctor.speciality }}
+            </p>
+            <p class="doctor-meta">
+              <i class="fas fa-envelope"></i> {{ doctorData.doctor.email }}
+            </p>
+            <p class="doctor-meta" *ngIf="doctorData.doctor.numtel">
+              <i class="fas fa-phone"></i> {{ doctorData.doctor.numtel }}
+            </p>
+          </div>
+        </div>
+        <div class="doctor-stats">
+          <div class="appointment-count">
+            <span class="count">{{ doctorData.appointments.length }}</span>
+            <span class="label">Rendez-vous</span>
+          </div>
+          <div class="expand-icon" [class.expanded]="isDoctorExpanded(doctorData.doctor.id!)">
+            <i class="fas fa-chevron-down"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appointments List (Collapsible) -->
+      <div class="appointments-container-inner" *ngIf="isDoctorExpanded(doctorData.doctor.id!)">
+        <div class="appointments-header">
+          <h4>Historique des rendez-vous</h4>
+        </div>
+        <div class="appointments-list-inner">
+          <div class="appointment-item" *ngFor="let appointment of doctorData.appointments">
+            <div class="appointment-info">
+              <div class="appointment-date">
+                <i class="fas fa-calendar"></i>
+                {{ formatDate(appointment.date) }}
+              </div>
+              <div class="appointment-status">
+                <span class="status-badge" [class]="getStatusClass(appointment.status)">
+                  {{ getStatusText(appointment.status) }}
+                </span>
+              </div>
+            </div>
+            <div class="appointment-actions">
+              <button class="action-btn prescription-btn" 
+                      *ngIf="appointment.status === 'CONFIRMED' && appointment.ordonnanceId"
+                      (click)="openOrdonnanceModal(appointment.ordonnanceId!)"
+                      title="Voir l'ordonnance">
+                <i class="fas fa-prescription-bottle"></i>
+              </button>
+              <button class="action-btn cancel-btn" 
+                      *ngIf="appointment.status === 'PENDING' || appointment.status === 'CONFIRMED'"
+                      (click)="cancelAppointment(appointment.id!)"
+                      title="Annuler le rendez-vous">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

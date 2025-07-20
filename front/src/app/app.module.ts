@@ -28,6 +28,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MedicamentManagementComponent } from './medicament-management/medicament-management.component';
 import { AddOrdonnanceModalComponent } from './add-ordonnance-modal/add-ordonnance-modal.component';
 import { MaladieManagementComponent } from './maladie-management/maladie-management.component';
+import { PatientAppointmentsListComponent } from './patient-appointments-list/patient-appointments-list.component';
 
 @NgModule({
   declarations: [
@@ -49,6 +50,7 @@ import { MaladieManagementComponent } from './maladie-management/maladie-managem
     MedicamentManagementComponent,
     AddOrdonnanceModalComponent,
     MaladieManagementComponent,
+    PatientAppointmentsListComponent,
 
   ],
   imports: [
