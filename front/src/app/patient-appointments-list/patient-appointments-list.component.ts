@@ -7,6 +7,9 @@ import { switchMap, map, catchError, take } from 'rxjs/operators';
 import { AppointmentService } from 'src/services/AppointmentService.service';
 import { AuthServiceService } from 'src/services/auth-service.service';
 import { OrdonnanceService } from 'src/services/OrdonnanceService.service';
+import { OrdonnanceModalComponent } from '../ordonnance-modal/ordonnance-modal.component';
+import { MatDialog } from '@angular/material/dialog';
+
 
 @Component({
   selector: 'app-patient-appointments-list',
@@ -20,16 +23,18 @@ export class PatientAppointmentsListComponent implements OnInit {
   loading = false;
   error: string | null = null;
   expandedDoctors: Set<number> = new Set();
-    patientName: string | null = null;
+  patientName: string | null = null;
 
   private currentUserId: number | null = null;
-  
+
 
   constructor(
     private appointmentService: AppointmentService,
     private userService: UserService,
     private ordonnanceService: OrdonnanceService,
-    private authService: AuthServiceService
+    private authService: AuthServiceService,
+    private dialog: MatDialog
+
   ) { }
 
   ngOnInit(): void {
@@ -37,8 +42,8 @@ export class PatientAppointmentsListComponent implements OnInit {
     this.authService.userId$.pipe(take(1)).subscribe(userId => {
       this.currentUserId = userId;
       // Use provided patientId if valid, otherwise fallback to currentUserId
-      const effectivePatientId = this.patientId && !isNaN(this.patientId) && this.patientId > 0 
-        ? this.patientId 
+      const effectivePatientId = this.patientId && !isNaN(this.patientId) && this.patientId > 0
+        ? this.patientId
         : this.currentUserId;
 
       if (!effectivePatientId || isNaN(effectivePatientId) || effectivePatientId <= 0) {
@@ -47,12 +52,12 @@ export class PatientAppointmentsListComponent implements OnInit {
       }
 
       this.loadAppointmentsList(effectivePatientId);
-      
+
     });
-        this.authService.userName$.subscribe(userName => {
+    this.authService.userName$.subscribe(userName => {
       this.patientName = userName;
     });
-    
+
   }
 
   loadAppointmentsList(patientId: number): void {
@@ -168,10 +173,13 @@ export class PatientAppointmentsListComponent implements OnInit {
     }
   }
 
-  openOrdonnanceModal(ordonnanceId: number): void {
-    console.log('Ouvrir ordonnance:', ordonnanceId);
-    // Add modal opening logic here
+  openOrdonnanceModal(ordonnanceId: number | null): void {
+    this.dialog.open(OrdonnanceModalComponent, {
+      width: '600px',
+      data: { ordonnanceId }
+    });
   }
+
 
   cancelAppointment(appointmentId: number): void {
     if (confirm('Êtes-vous sûr de vouloir annuler ce rendez-vous ?')) {
@@ -193,12 +201,12 @@ export class PatientAppointmentsListComponent implements OnInit {
   }
 
   getConfirmedAppointments(): number {
-    return this.appointmentsList.reduce((total, doctorData) => 
+    return this.appointmentsList.reduce((total, doctorData) =>
       total + doctorData.appointments.filter(apt => apt.status === 'CONFIRMED').length, 0);
   }
 
   getPendingAppointments(): number {
-    return this.appointmentsList.reduce((total, doctorData) => 
+    return this.appointmentsList.reduce((total, doctorData) =>
       total + doctorData.appointments.filter(apt => apt.status === 'PENDING').length, 0);
   }
 }

@@ -3,6 +3,7 @@ package com.bezkoder.spring.security.jwt.security.services;
 import com.bezkoder.spring.security.jwt.dto.MedicamentDTO;
 import com.bezkoder.spring.security.jwt.models.Medicament;
 import com.bezkoder.spring.security.jwt.repository.MedicamentRepository;
+import com.bezkoder.spring.security.jwt.repository.MedicamentSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,13 @@ public class MedicamentServiceImpl implements MedicamentService {
     @Override
     public List<MedicamentDTO> getAllMedicaments() {
         return medicamentRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MedicamentDTO> filterMedicamentsByNom(String nom) {
+        return medicamentRepository.findAll(MedicamentSpecification.filterByNom(nom)).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }

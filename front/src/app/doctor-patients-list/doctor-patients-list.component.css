@@ -1,4 +1,3 @@
-
 .patients-container {
   padding: 20px;
   max-width: 1200px;
@@ -8,6 +7,17 @@
 .edit-btn-blue {
   background: #2980b9;
   color: white;
+}
+
+.medical-file-btn {
+  background: #17a2b8;
+  color: white;
+}
+
+.medical-file-btn:hover {
+  background: #138496;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3);
 }
 
 .edit-btn-blue:hover {
@@ -83,7 +93,7 @@
   background: #e74c3c;
   color: white;
   padding: 15px;
-  border-radius: 5px;
+  border-radius: 5 adjuncts;
   margin-bottom: 20px;
   display: inline-block;
 }
@@ -155,8 +165,20 @@
   object-fit: cover;
 }
 
+.patient-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.patient-details-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .patient-details h3 {
-  margin: 0 0 5px 0;
+  margin: 0;
   color: #2c3e50;
 }
 
@@ -321,6 +343,12 @@
     text-align: center;
   }
   
+  .patient-details-header {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  
   .appointment-item {
     flex-direction: column;
     gap: 15px;
@@ -329,6 +357,4 @@
   .appointment-actions {
     justify-content: center;
   }
-
-  
 }

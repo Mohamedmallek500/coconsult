@@ -11,6 +11,7 @@ import { DoctorPatientsListComponent } from './doctor-patients-list/doctor-patie
 import { MedicamentManagementComponent } from './medicament-management/medicament-management.component';
 import { MaladieManagementComponent } from './maladie-management/maladie-management.component';
 import { PatientAppointmentsListComponent } from './patient-appointments-list/patient-appointments-list.component';
+import { ProfilComponent } from './profil/profil.component';
 
 const routes: Routes = [
   {
@@ -60,18 +61,25 @@ const routes: Routes = [
     component: MedicamentManagementComponent,
     canActivate: [AuthGuard]
   },
-    {
+  {
     path: 'admin/maladies',
     pathMatch: 'full',
     component: MaladieManagementComponent,
     canActivate: [AuthGuard]
   },
-      {
+  {
     path: 'historique',
     pathMatch: 'full',
     component: PatientAppointmentsListComponent,
     canActivate: [AuthGuard]
   },
+  {
+    path: 'profil',
+    pathMatch: 'full',
+    component: ProfilComponent,
+    canActivate: [AuthGuard]
+  },
+
 
 
 

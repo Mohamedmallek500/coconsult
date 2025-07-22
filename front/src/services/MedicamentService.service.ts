@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Medicament } from 'src/models/Medicament.model';
@@ -69,6 +69,23 @@ export class MedicamentService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`, { withCredentials: true }).pipe(
       catchError(error => {
         let message = 'Échec de la suppression du médicament';
+        if (error.error?.message) {
+          message = error.error.message;
+        }
+        return throwError(() => new Error(message));
+      })
+    );
+  }
+
+    // Filter medicaments by name
+  filterMedicamentsByNom(nom?: string): Observable<Medicament[]> {
+    let params = new HttpParams();
+    if (nom) {
+      params = params.set('nom', nom);
+    }
+    return this.http.get<Medicament[]>(`${this.baseUrl}/filter`, { params, withCredentials: true }).pipe(
+      catchError(error => {
+        let message = 'Échec de la récupération des médicaments filtrés';
         if (error.error?.message) {
           message = error.error.message;
         }

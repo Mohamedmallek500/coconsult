@@ -7,6 +7,7 @@ import { UserService } from 'src/services/UserService.service';
 import { OrdonnanceModalComponent } from '../ordonnance-modal/ordonnance-modal.component';
 import { MatDialog } from '@angular/material/dialog';
 import { AddOrdonnanceModalComponent } from '../add-ordonnance-modal/add-ordonnance-modal.component';
+import { FicheMedicaleModalComponent } from '../fiche-medicale-modal/fiche-medicale-modal.component';
 
 interface PatientWithAppointments {
   patient: User;
@@ -213,6 +214,15 @@ export class DoctorPatientsListComponent implements OnInit {
       }
     });
   }
+
+  openFicheMedicaleModal(patientId: number): void {
+  this.dialog.open(FicheMedicaleModalComponent, {
+    width: '800px',
+    maxWidth: '95vw',
+    maxHeight: '90vh',
+    data: { patientId }
+  });
+}
 
   getImageUrl(imagePath: string | undefined): string {
     if (!imagePath) return 'assets/images/default-profile.png';

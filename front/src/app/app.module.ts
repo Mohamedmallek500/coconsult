@@ -29,6 +29,8 @@ import { MedicamentManagementComponent } from './medicament-management/medicamen
 import { AddOrdonnanceModalComponent } from './add-ordonnance-modal/add-ordonnance-modal.component';
 import { MaladieManagementComponent } from './maladie-management/maladie-management.component';
 import { PatientAppointmentsListComponent } from './patient-appointments-list/patient-appointments-list.component';
+import { FicheMedicaleModalComponent } from './fiche-medicale-modal/fiche-medicale-modal.component';
+import { ProfilComponent } from './profil/profil.component';
 
 @NgModule({
   declarations: [
@@ -51,6 +53,8 @@ import { PatientAppointmentsListComponent } from './patient-appointments-list/pa
     AddOrdonnanceModalComponent,
     MaladieManagementComponent,
     PatientAppointmentsListComponent,
+    FicheMedicaleModalComponent,
+    ProfilComponent
 
   ],
   imports: [

@@ -41,7 +41,15 @@
                  [alt]="patientData.patient.nom + ' ' + patientData.patient.prenom">
           </div>
           <div class="patient-details">
-            <h3>{{ patientData.patient.nom }} {{ patientData.patient.prenom }}</h3>
+            <div class="patient-details-header">
+              <h3>{{ patientData.patient.nom }} {{ patientData.patient.prenom }}</h3>
+              <button class="action-btn medical-file-btn" 
+                      (click)="openFicheMedicaleModal(patientData.patient.id!); $event.stopPropagation()"
+                      title="Voir la fiche médicale">
+                <i class="fas fa-file-medical" aria-hidden="true"></i>
+                <span class="visually-hidden">Voir la fiche médicale</span>
+              </button>
+            </div>
             <p class="patient-meta">
               <i class="fas fa-envelope"></i> {{ patientData.patient.email }}
             </p>
@@ -92,12 +100,12 @@
                       title="Voir l'ordonnance">
                 <i class="fas fa-prescription-bottle"></i>
               </button>
-<button class="action-btn edit-btn-blue" 
-        *ngIf="appointment.status === 'CONFIRMED' && appointment.ordonnanceId"
-        (click)="openUpdateOrdonnanceModal(appointment.ordonnanceId, patientData.patient.id!, appointment.doctorId!)"
-        title="Modifier l'ordonnance">
-  <i class="fas fa-edit"></i>
-</button>
+              <button class="action-btn edit-btn-blue" 
+                      *ngIf="appointment.status === 'CONFIRMED' && appointment.ordonnanceId"
+                      (click)="openUpdateOrdonnanceModal(appointment.ordonnanceId, patientData.patient.id!, appointment.doctorId!)"
+                      title="Modifier l'ordonnance">
+                <i class="fas fa-edit"></i>
+              </button>
               <button class="action-btn delete-btn" 
                       (click)="deleteAppointment(appointment.id!)"
                       title="Supprimer le rendez-vous">

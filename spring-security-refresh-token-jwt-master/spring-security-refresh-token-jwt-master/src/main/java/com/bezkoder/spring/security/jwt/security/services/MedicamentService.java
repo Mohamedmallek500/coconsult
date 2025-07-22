@@ -7,6 +7,7 @@ public interface MedicamentService {
     MedicamentDTO createMedicament(MedicamentDTO medicamentDTO);
     MedicamentDTO getMedicamentById(Long id);
     List<MedicamentDTO> getAllMedicaments();
+    List<MedicamentDTO> filterMedicamentsByNom(String nom); // New method for filtering
     MedicamentDTO updateMedicament(Long id, MedicamentDTO medicamentDTO);
     void deleteMedicament(Long id);
 }

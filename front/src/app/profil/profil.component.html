@@ -1,0 +1,197 @@
+<div class="container-fluid p-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h3 class="card-title mb-0">Mon Profil</h3>
+        </div>
+
+        <div class="card-body">
+          <!-- Success/Error Messages -->
+          <div *ngIf="success" class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ success }}
+            <button type="button" class="btn-close" (click)="success = ''" aria-label="Close"></button>
+          </div>
+
+          <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ error }}
+            <button type="button" class="btn-close" (click)="error = ''" aria-label="Close"></button>
+          </div>
+
+          <!-- Loading indicator -->
+          <div *ngIf="loading" class="text-center py-3">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Chargement...</span>
+            </div>
+          </div>
+
+          <!-- Profile Form -->
+          <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" *ngIf="!loading">
+            <div class="row">
+              <!-- Basic Info -->
+              <div class="col-md-6">
+                <div class="form-group mb-3">
+                  <label for="username">Nom d'utilisateur *</label>
+                  <input type="text" id="username" class="form-control" formControlName="username">
+                  <div *ngIf="profileForm.get('username')?.invalid && profileForm.get('username')?.touched" class="text-danger">
+                    Nom d'utilisateur requis (min 3 caractères)
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="form-group mb-3">
+                  <label for="email">Email *</label>
+                  <input type="email" id="email" class="form-control" formControlName="email">
+                  <div *ngIf="profileForm.get('email')?.invalid && profileForm.get('email')?.touched" class="text-danger">
+                    Email valide requis
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="form-group mb-3">
+                  <label for="password">Nouveau mot de passe (laisser vide pour ne pas changer)</label>
+                  <input type="password" id="password" class="form-control" formControlName="password">
+                  <div *ngIf="profileForm.get('password')?.invalid && profileForm.get('password')?.touched" class="text-danger">
+                    Mot de passe doit avoir au moins 6 caractères
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="form-group mb-3">
+                  <label for="nom">Nom *</label>
+                  <input type="text" id="nom" class="form-control" formControlName="nom">
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="form-group mb-3">
+                  <label for="prenom">Prénom *</label>
+                  <input type="text" id="prenom" class="form-control" formControlName="prenom">
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="form-group mb-3">
+                  <label for="numtel">Téléphone *</label>
+                  <input type="text" id="numtel" class="form-control" formControlName="numtel">
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="form-group mb-3">
+                  <label for="dateNaissance">Date de naissance *</label>
+                  <input type="date" id="dateNaissance" class="form-control" formControlName="dateNaissance">
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="form-group mb-3">
+                  <label for="adresse">Adresse *</label>
+                  <input type="text" id="adresse" class="form-control" formControlName="adresse">
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="form-group mb-3">
+                  <label for="cin">CIN *</label>
+                  <input type="text" id="cin" class="form-control" formControlName="cin">
+                </div>
+              </div>
+
+              <!-- Image Upload -->
+              <div class="col-md-6">
+                <div class="form-group mb-3">
+                  <label for="image">Image de profil</label>
+                  <input type="file" id="image" class="form-control" (change)="onFileSelected($event)" accept="image/jpeg,image/png">
+                  <div *ngIf="imageError" class="text-danger">{{ imageError }}</div>
+                  <div *ngIf="imagePreview" class="mt-2">
+                    <img [src]="imagePreview" class="preview-image" alt="Image Preview">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Patient specific fields -->
+              <div *ngIf="userRole === 'patient'" class="row">
+                <div class="col-md-6">
+                  <div class="form-group mb-3">
+                    <label for="numCnss">Numéro CNSS *</label>
+                    <input type="text" id="numCnss" class="form-control" formControlName="numCnss">
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group mb-3">
+                    <label for="numDossier">Numéro de dossier *</label>
+                    <input type="text" id="numDossier" class="form-control" formControlName="numDossier">
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group mb-3">
+                    <label for="nomDocteurFamille">Nom du docteur de famille</label>
+                    <input type="text" id="nomDocteurFamille" class="form-control" formControlName="nomDocteurFamille">
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group mb-3">
+                    <label for="mpsi">MPSI</label>
+                    <input type="text" id="mpsi" class="form-control" formControlName="mpsi">
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="form-group mb-3">
+                    <label>Maladies</label>
+                    <input type="text" class="form-control mb-2" placeholder="Rechercher une maladie..." 
+                           [(ngModel)]="maladieSearch" (input)="filterMaladies()" [ngModelOptions]="{standalone: true}">
+                    <div class="d-flex flex-wrap">
+                      <div *ngFor="let maladie of filteredMaladies" class="form-check me-3 mb-2">
+                        <input class="form-check-input" type="checkbox" 
+                              [id]="'maladie_' + maladie.id"
+                              [checked]="isMaladieSelected(maladie.id)"
+                              (change)="onMaladieChange($event, maladie.id)">
+                        <label class="form-check-label" [for]="'maladie_' + maladie.id">
+                          {{ maladie.name }}
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Doctor specific ofields -->
+              <div *ngIf="userRole === 'doctor'" class="row">
+                <div class="col-md-6">
+                  <div class="form-group mb-3">
+                    <label for="speciality">Spécialité *</label>
+                    <input type="text" id="speciality" class="form-control" formControlName="speciality">
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="form-group mb-3">
+                    <label for="bio">Bio *</label>
+                    <textarea id="bio" class="form-control" formControlName="bio" rows="4"></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end mt-3">
+              <button type="submit" class="btn btn-success me-2" [disabled]="profileForm.invalid || loading">
+                <i class="fas fa-save"></i> Mettre à jour
+              </button>
+              <button type="button" class="btn btn-secondary" (click)="cancel()" [disabled]="loading">
+                <i class="fas fa-times"></i> Annuler
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
