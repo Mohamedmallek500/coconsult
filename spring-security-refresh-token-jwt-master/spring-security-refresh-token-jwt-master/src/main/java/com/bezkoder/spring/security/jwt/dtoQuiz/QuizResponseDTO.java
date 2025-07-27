@@ -4,6 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 public class QuizResponseDTO {
@@ -11,4 +14,7 @@ public class QuizResponseDTO {
     private Long questionId;
     @NotBlank
     private String responseText;
+    private List<QuestionDTO> followUpQuestions = new ArrayList<>();
+    private QuestionDTO nextQuestion;
+
 }

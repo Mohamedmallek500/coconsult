@@ -5,12 +5,17 @@ import com.bezkoder.spring.security.jwt.dtoQuiz.QuizDTO;
 import com.bezkoder.spring.security.jwt.dtoQuiz.QuizResponseDTO;
 import com.bezkoder.spring.security.jwt.models.Question;
 import com.bezkoder.spring.security.jwt.models.Quiz;
+import com.bezkoder.spring.security.jwt.models.User;
+import com.bezkoder.spring.security.jwt.payload.response.QuizResponse;
 import com.bezkoder.spring.security.jwt.repository.QuestionRepository;
 import com.bezkoder.spring.security.jwt.repository.QuizRepository;
 import com.bezkoder.spring.security.jwt.repository.QuizResponseRepository;
+import com.bezkoder.spring.security.jwt.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +35,9 @@ public class QuizService {
 
     @Autowired
     private QuizResponseRepository quizResponseRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Transactional
     public QuizDTO createQuiz(QuizDTO quizDTO) {
@@ -61,7 +69,11 @@ public class QuizService {
         Question question = new Question();
         question.setContent(questionDTO.getContent());
         question.setType(questionDTO.getType());
-        question.setOptions(questionDTO.getOptions());
+        if (questionDTO.getType() == Question.QuestionType.YES_NO && (questionDTO.getOptions() == null || questionDTO.getOptions().isEmpty())) {
+            question.setOptions(List.of("Yes", "No"));
+        } else {
+            question.setOptions(questionDTO.getOptions());
+        }
         question.setQuiz(quiz);
         question.setParentQuestionId(questionDTO.getParentQuestionId());
         question.setParentAnswer(questionDTO.getParentAnswer());
@@ -71,14 +83,17 @@ public class QuizService {
         // Handle follow-up questions
         List<QuestionDTO> followUpDTOs = new ArrayList<>();
         for (QuestionDTO followUpDTO : questionDTO.getFollowUpQuestions()) {
-            // Set parentQuestionId for follow-up questions
             followUpDTO.setParentQuestionId(savedQuestion.getId());
             Question followUpQuestion = new Question();
             followUpQuestion.setContent(followUpDTO.getContent());
             followUpQuestion.setType(followUpDTO.getType());
-            followUpQuestion.setOptions(followUpDTO.getOptions());
+            if (followUpDTO.getType() == Question.QuestionType.YES_NO && (followUpDTO.getOptions() == null || followUpDTO.getOptions().isEmpty())) {
+                followUpQuestion.setOptions(List.of("Yes", "No"));
+            } else {
+                followUpQuestion.setOptions(followUpDTO.getOptions());
+            }
             followUpQuestion.setQuiz(quiz);
-            followUpQuestion.setParentQuestionId(savedQuestion.getId()); // Set the parent ID
+            followUpQuestion.setParentQuestionId(savedQuestion.getId());
             followUpQuestion.setParentAnswer(followUpDTO.getParentAnswer());
 
             Question savedFollowUp = questionRepository.save(followUpQuestion);
@@ -99,7 +114,6 @@ public class QuizService {
         quizDTO.setTitle(quiz.getTitle());
         quizDTO.setDescription(quiz.getDescription());
 
-        // Fetch only top-level questions (parentQuestionId is null)
         List<QuestionDTO> questionDTOs = questionRepository.findByQuizIdAndParentQuestionIdIsNull(quizId)
                 .stream()
                 .map(this::mapToQuestionDTO)
@@ -109,10 +123,84 @@ public class QuizService {
         return quizDTO;
     }
 
+    @Transactional
     public QuizResponseDTO submitResponse(QuizResponseDTO responseDTO) {
-        // Implementation for saving quiz responses (unchanged for this fix)
-        // Add your existing logic here
-        throw new UnsupportedOperationException("submitResponse not implemented");
+        // Get the authenticated user
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        Long userId = userDetails.getId();
+        logger.info("Authenticated user ID: {}", userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+
+        // Validate quiz
+        Quiz quiz = quizRepository.findById(responseDTO.getQuizId())
+                .orElseThrow(() -> new RuntimeException("Quiz not found with ID: " + responseDTO.getQuizId()));
+
+        // Validate question
+        Question question = questionRepository.findById(responseDTO.getQuestionId())
+                .orElseThrow(() -> new RuntimeException("Question not found with ID: " + responseDTO.getQuestionId()));
+
+        // Ensure question belongs to the quiz
+        if (!question.getQuiz().getId().equals(quiz.getId())) {
+            throw new RuntimeException("Question ID: " + responseDTO.getQuestionId() + " does not belong to Quiz ID: " + responseDTO.getQuizId());
+        }
+
+        // Validate response based on question type
+        if (question.getType() == Question.QuestionType.YES_NO && !List.of("Yes", "No").contains(responseDTO.getResponseText())) {
+            throw new RuntimeException("Invalid response for YES_NO question: " + responseDTO.getResponseText());
+        } else if (question.getType() == Question.QuestionType.MULTIPLE_CHOICE) {
+            if (question.getOptions() != null && !question.getOptions().contains(responseDTO.getResponseText())) {
+                throw new RuntimeException("Invalid response for MULTIPLE_CHOICE question: " + responseDTO.getResponseText());
+            }
+        } // TEXT type allows any non-empty string, validated by @NotBlank in QuizResponseDTO
+
+        // Save response
+        QuizResponse response = new QuizResponse(quiz, question, user, responseDTO.getResponseText());
+        QuizResponse savedResponse = quizResponseRepository.save(response);
+
+        // Map to DTO
+        QuizResponseDTO result = new QuizResponseDTO();
+        result.setQuizId(savedResponse.getQuiz().getId());
+        result.setQuestionId(savedResponse.getQuestion().getId());
+        result.setResponseText(savedResponse.getResponseText());
+
+        // Include follow-up questions if any
+        List<QuestionDTO> followUpQuestions = getFollowUpQuestions(question.getId(), responseDTO.getResponseText());
+        result.setFollowUpQuestions(followUpQuestions);
+
+        // If no follow-up questions, include the next main question
+        if (followUpQuestions.isEmpty()) {
+            QuestionDTO nextQuestion = getNextMainQuestion(quiz.getId(), question.getId(), userId);
+            result.setNextQuestion(nextQuestion);
+        }
+
+        logger.info("Response saved for quiz ID: {}, question ID: {}, user ID: {}", quiz.getId(), question.getId(), userId);
+        return result;
+    }
+
+    private QuestionDTO getNextMainQuestion(Long quizId, Long currentQuestionId, Long userId) {
+        // Get all main questions (parentQuestionId is null) for the quiz, ordered by ID
+        List<Question> mainQuestions = questionRepository.findByQuizIdAndParentQuestionIdIsNull(quizId)
+                .stream()
+                .sorted((q1, q2) -> q1.getId().compareTo(q2.getId()))
+                .collect(Collectors.toList());
+
+        // Get questions the user has already answered
+        List<Long> answeredQuestionIds = quizResponseRepository.findByQuizIdAndUserId(quizId, userId)
+                .stream()
+                .map(response -> response.getQuestion().getId())
+                .collect(Collectors.toList());
+
+        // Find the next main question that hasn't been answered
+        for (Question question : mainQuestions) {
+            if (question.getId() > currentQuestionId && !answeredQuestionIds.contains(question.getId())) {
+                return mapToQuestionDTO(question);
+            }
+        }
+
+        // Return null if no next question is found (end of quiz)
+        return null;
     }
 
     public List<QuestionDTO> getFollowUpQuestions(Long questionId, String parentAnswer) {
@@ -131,7 +219,6 @@ public class QuizService {
         dto.setParentQuestionId(question.getParentQuestionId());
         dto.setParentAnswer(question.getParentAnswer());
 
-        // Fetch follow-up questions recursively
         List<QuestionDTO> followUpDTOs = questionRepository.findByParentQuestionId(question.getId())
                 .stream()
                 .map(this::mapToQuestionDTO)
