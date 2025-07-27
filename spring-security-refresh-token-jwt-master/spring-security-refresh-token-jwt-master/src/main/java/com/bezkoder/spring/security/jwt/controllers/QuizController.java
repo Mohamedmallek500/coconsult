@@ -70,13 +70,4 @@ public class QuizController {
         }
     }
 
-    @GetMapping("/question/{questionId}/follow-up")
-    public ResponseEntity<?> getFollowUpQuestions(@PathVariable Long questionId, @RequestParam String parentAnswer) {
-        try {
-            return ResponseEntity.ok(quizService.getFollowUpQuestions(questionId, parentAnswer));
-        } catch (Exception e) {
-            logger.error("Failed to retrieve follow-up questions for question ID: {}. Error: {}", questionId, e.getMessage());
-            return ResponseEntity.status(500).body(new MessageResponse("Error: " + e.getMessage()));
-        }
-    }
 }

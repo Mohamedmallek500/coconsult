@@ -31,6 +31,7 @@ import { MaladieManagementComponent } from './maladie-management/maladie-managem
 import { PatientAppointmentsListComponent } from './patient-appointments-list/patient-appointments-list.component';
 import { FicheMedicaleModalComponent } from './fiche-medicale-modal/fiche-medicale-modal.component';
 import { ProfilComponent } from './profil/profil.component';
+import { FloatingChatbotComponent } from './floating-chatbot/floating-chatbot.component';
 
 @NgModule({
   declarations: [
@@ -54,7 +55,8 @@ import { ProfilComponent } from './profil/profil.component';
     MaladieManagementComponent,
     PatientAppointmentsListComponent,
     FicheMedicaleModalComponent,
-    ProfilComponent
+    ProfilComponent,
+    FloatingChatbotComponent
 
   ],
   imports: [

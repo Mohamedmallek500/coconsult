@@ -1,0 +1,61 @@
+<div class="floating-chatbot">
+  <!-- Bouton flottant -->
+  <button 
+    class="chat-toggle-btn"
+    (click)="toggleChat()"
+    [class.active]="isChatOpen">
+    <svg *ngIf="!isChatOpen" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
+    <svg *ngIf="isChatOpen" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  </button>
+
+  <!-- Interface du chatbot -->
+  <div class="chat-window" [class.open]="isChatOpen">
+    <div class="chat-header">
+      <h3>Assistant Virtuel</h3>
+      <button class="close-btn" (click)="toggleChat()">×</button>
+    </div>
+    
+    <div class="chat-messages" #messagesContainer>
+      <div 
+        *ngFor="let message of messages" 
+        class="message"
+        [class.user-message]="message.isUser"
+        [class.bot-message]="!message.isUser">
+        <div class="message-content">
+          {{ message.text }}
+        </div>
+        <div class="message-time">
+          {{ message.timestamp | date:'HH:mm' }}
+        </div>
+      </div>
+      
+      <div *ngIf="isTyping" class="message bot-message">
+        <div class="typing-indicator">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="chat-input">
+      <input 
+        type="text" 
+        [(ngModel)]="currentMessage"
+        (keyup.enter)="sendMessage()"
+        placeholder="Tapez votre message..."
+        #messageInput>
+      <button (click)="sendMessage()" [disabled]="!currentMessage.trim()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22,2 15,22 11,13 2,9"></polygon>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
