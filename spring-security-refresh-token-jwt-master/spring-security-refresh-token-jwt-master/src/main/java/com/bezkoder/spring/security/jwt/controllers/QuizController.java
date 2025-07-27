@@ -3,17 +3,14 @@ package com.bezkoder.spring.security.jwt.controllers;
 import com.bezkoder.spring.security.jwt.dtoQuiz.QuestionDTO;
 import com.bezkoder.spring.security.jwt.dtoQuiz.QuizDTO;
 import com.bezkoder.spring.security.jwt.dtoQuiz.QuizResponseDTO;
-import com.bezkoder.spring.security.jwt.models.ERole;
 import com.bezkoder.spring.security.jwt.payload.response.MessageResponse;
 import com.bezkoder.spring.security.jwt.security.services.QuizService;
-import com.bezkoder.spring.security.jwt.security.services.UserDetailsImpl;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600, allowCredentials = "true")

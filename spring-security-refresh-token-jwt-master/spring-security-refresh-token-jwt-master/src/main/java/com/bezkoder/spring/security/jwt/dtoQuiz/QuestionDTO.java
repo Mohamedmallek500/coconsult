@@ -22,5 +22,9 @@ public class QuestionDTO {
 
     private List<String> options = new ArrayList<>();
 
-    private List<FollowUpQuestionDTO> followUpQuestions = new ArrayList<>();
+    private Long parentQuestionId;
+
+    private String parentAnswer;
+
+    private List<QuestionDTO> followUpQuestions = new ArrayList<>();
 }
