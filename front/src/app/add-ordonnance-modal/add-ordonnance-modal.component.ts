@@ -18,7 +18,9 @@ interface DialogData {
 })
 export class AddOrdonnanceModalComponent implements OnInit {
   medicaments: Medicament[] = [];
+  filteredMedicaments: Medicament[] = [];
   selectedMedicamentIds: number[] = [];
+  searchTerm: string = '';
   loading = false;
   error: string | null = null;
 
@@ -35,12 +37,16 @@ export class AddOrdonnanceModalComponent implements OnInit {
   }
 
   loadMedicaments(): void {
+    this.loading = true;
     this.medicamentService.getAllMedicaments().subscribe({
       next: (medicaments) => {
         this.medicaments = medicaments;
+        this.filteredMedicaments = medicaments;
+        this.loading = false;
       },
       error: (error) => {
         this.error = error.message;
+        this.loading = false;
       }
     });
   }
@@ -52,6 +58,25 @@ export class AddOrdonnanceModalComponent implements OnInit {
       },
       error: (error) => {
         this.error = error.message;
+      }
+    });
+  }
+
+  filterMedicaments(): void {
+    if (!this.searchTerm.trim()) {
+      this.filteredMedicaments = [...this.medicaments];
+      return;
+    }
+
+    this.loading = true;
+    this.medicamentService.filterMedicamentsByNom(this.searchTerm).subscribe({
+      next: (medicaments) => {
+        this.filteredMedicaments = medicaments;
+        this.loading = false;
+      },
+      error: (error) => {
+        this.error = error.message;
+        this.loading = false;
       }
     });
   }

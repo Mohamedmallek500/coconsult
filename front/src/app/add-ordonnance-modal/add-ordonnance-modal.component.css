@@ -1,5 +1,23 @@
 /* Modal Container */
 
+.search-container {
+  margin: 10px 0;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0,123,255,0.3);
+}
+
 
 .modal-overlay {
   position: fixed;
@@ -227,7 +245,6 @@
 }
 
 .medicament-item::before {
-  content: '\f0f3';
   font-family: 'Font Awesome 5 Free';
   font-weight: 900;
   color: #3498db;
