@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface FollowUpQuestionRepository extends JpaRepository<FollowUpQuestion, Long> {
     List<FollowUpQuestion> findByParentQuestionIdAndParentAnswer(Long parentQuestionId, String parentAnswer);
+    List<FollowUpQuestion> findByParentQuestionId(Long parentQuestionId);
+
 }

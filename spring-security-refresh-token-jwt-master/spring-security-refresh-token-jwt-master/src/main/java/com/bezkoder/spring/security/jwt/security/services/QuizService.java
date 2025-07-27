@@ -1,11 +1,12 @@
 package com.bezkoder.spring.security.jwt.security.services;
 
+
+
 import com.bezkoder.spring.security.jwt.dtoQuiz.FollowUpQuestionDTO;
 import com.bezkoder.spring.security.jwt.dtoQuiz.QuestionDTO;
 import com.bezkoder.spring.security.jwt.dtoQuiz.QuizDTO;
 import com.bezkoder.spring.security.jwt.dtoQuiz.QuizResponseDTO;
 import com.bezkoder.spring.security.jwt.models.*;
-
 import com.bezkoder.spring.security.jwt.payload.response.QuizResponse;
 import com.bezkoder.spring.security.jwt.repository.*;
 import org.slf4j.Logger;
@@ -65,6 +66,7 @@ public class QuizService {
                     followUpDTO.getParentAnswer()
             );
             followUpQuestionRepository.save(followUp);
+            followUpDTO.setId(followUp.getId());
         }
 
         logger.info("Question added to quiz ID: {}", quizId);
@@ -87,7 +89,7 @@ public class QuizService {
             dto.setType(question.getType());
             dto.setOptions(question.getOptions());
             List<FollowUpQuestionDTO> followUpDTOs = followUpQuestionRepository
-                    .findByParentQuestionIdAndParentAnswer(question.getId(), null)
+                    .findByParentQuestionId(question.getId())
                     .stream()
                     .map(fq -> {
                         FollowUpQuestionDTO fDto = new FollowUpQuestionDTO();
