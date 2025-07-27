@@ -12,6 +12,7 @@ import { MedicamentManagementComponent } from './medicament-management/medicamen
 import { MaladieManagementComponent } from './maladie-management/maladie-management.component';
 import { PatientAppointmentsListComponent } from './patient-appointments-list/patient-appointments-list.component';
 import { ProfilComponent } from './profil/profil.component';
+import { QuizComponent } from './quiz/quiz.component';
 
 const routes: Routes = [
   {
@@ -77,6 +78,12 @@ const routes: Routes = [
     path: 'profil',
     pathMatch: 'full',
     component: ProfilComponent,
+    canActivate: [AuthGuard]
+  },
+    {
+    path: 'quiz/:id',
+    pathMatch: 'full',
+    component: QuizComponent,
     canActivate: [AuthGuard]
   },
 

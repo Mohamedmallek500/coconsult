@@ -32,6 +32,7 @@ import { PatientAppointmentsListComponent } from './patient-appointments-list/pa
 import { FicheMedicaleModalComponent } from './fiche-medicale-modal/fiche-medicale-modal.component';
 import { ProfilComponent } from './profil/profil.component';
 import { FloatingChatbotComponent } from './floating-chatbot/floating-chatbot.component';
+import { QuizComponent } from './quiz/quiz.component';
 
 @NgModule({
   declarations: [
@@ -56,7 +57,8 @@ import { FloatingChatbotComponent } from './floating-chatbot/floating-chatbot.co
     PatientAppointmentsListComponent,
     FicheMedicaleModalComponent,
     ProfilComponent,
-    FloatingChatbotComponent
+    FloatingChatbotComponent,
+    QuizComponent
 
   ],
   imports: [
