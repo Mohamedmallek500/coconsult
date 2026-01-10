@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, TemplateRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { User } from 'src/models/User.model';
 import { Maladie } from 'src/models/Maladie.model';
 import { UserService } from 'src/services/UserService.service';
 import { MaladieService } from 'src/services/MaladieService.service';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-user-management',
@@ -11,6 +12,7 @@ import { MaladieService } from 'src/services/MaladieService.service';
   styleUrls: ['./admin-user-management.component.css']
 })
 export class AdminUserManagementComponent implements OnInit {
+  @ViewChild('userFormModal') userFormModal!: TemplateRef<any>;
   users: User[] = [];
   maladies: Maladie[] = [];
   filteredMaladies: Maladie[] = [];
@@ -26,18 +28,20 @@ export class AdminUserManagementComponent implements OnInit {
   pageSize = 10;
   totalPages = 0;
   filterRole = '';
-  filterNom = ''; // New field for nom filter
-  filterPrenom = ''; // New field for prenom filter
+  filterNom = '';
+  filterPrenom = '';
   maladieSearch = '';
   selectedMaladies: number[] = [];
   selectedFile: File | null = null;
   imagePreview: string | null = null;
   imageError: string | null = null;
+  private modalRef: NgbModalRef | null = null;
 
   constructor(
     private userService: UserService,
     private maladieService: MaladieService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private modalService: NgbModal
   ) {
     this.initializeForm();
   }
@@ -107,7 +111,6 @@ export class AdminUserManagementComponent implements OnInit {
 
   loadUsers(): void {
     this.loading = true;
-    // Use filterUsers if any filter is applied, otherwise use getAllUsers
     const serviceCall = (this.filterNom || this.filterPrenom || this.filterRole)
       ? this.userService.filterUsers(this.filterNom, this.filterPrenom, this.filterRole, this.currentPage, this.pageSize)
       : this.userService.getAllUsers(this.currentPage, this.pageSize);
@@ -120,7 +123,7 @@ export class AdminUserManagementComponent implements OnInit {
           image: user.image
         }));
         this.totalPages = response.totalPages;
-        this.filteredUsers = [...this.users]; // No client-side filtering needed
+        this.filteredUsers = [...this.users];
         this.loading = false;
       },
       error: (error) => {
@@ -204,7 +207,7 @@ export class AdminUserManagementComponent implements OnInit {
   }
 
   onFilterChange(): void {
-    this.currentPage = 0; // Reset to first page on filter change
+    this.currentPage = 0;
     this.loadUsers();
   }
 
@@ -219,6 +222,7 @@ export class AdminUserManagementComponent implements OnInit {
     this.userForm.reset();
     this.userForm.patchValue({ role: 'patient' });
     this.updateValidators('patient');
+    this.openModal();
   }
 
   editUser(user: User): void {
@@ -226,7 +230,6 @@ export class AdminUserManagementComponent implements OnInit {
     this.isEditing = true;
     this.editingUserId = user.id || null;
     this.selectedMaladies = user.dossierfile?.map(m => typeof m === 'number' ? m : m.id) || [];
-
     this.imagePreview = user.image ? this.getImageUrl(user.image) : null;
 
     this.userForm.patchValue({
@@ -249,6 +252,15 @@ export class AdminUserManagementComponent implements OnInit {
     });
 
     this.updateValidators(user.role || 'patient');
+    this.openModal();
+  }
+
+  openModal(): void {
+    this.modalRef = this.modalService.open(this.userFormModal, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false
+    });
   }
 
   cancelEdit(): void {
@@ -261,6 +273,10 @@ export class AdminUserManagementComponent implements OnInit {
     this.imageError = null;
     this.userForm.reset();
     this.userForm.patchValue({ role: 'patient' });
+    if (this.modalRef) {
+      this.modalRef.close();
+      this.modalRef = null;
+    }
   }
 
   saveUser(): void {

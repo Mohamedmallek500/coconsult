@@ -1,0 +1,198 @@
+<div class="container-fluid p-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h3 class="card-title mb-0">Gestion des Médicaments</h3>
+          <button class="btn btn-primary" (click)="openAddModal()" [disabled]="loading">
+            <i class="fas fa-plus"></i> Ajouter un médicament
+          </button>
+        </div>
+
+        <div class="card-body">
+          <!-- Success/Error Messages -->
+          <div *ngIf="success" class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ success }}
+            <button type="button" class="btn-close" (click)="clearMessages()" aria-label="Close"></button>
+          </div>
+          <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ error }}
+            <button type="button" class="btn-close" (click)="clearMessages()" aria-label="Close"></button>
+          </div>
+
+          <!-- Filters -->
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <div class="form-group">
+                <label for="filterNomMedicament">Nom du médicament:</label>
+                <input 
+                  type="text" 
+                  id="filterNomMedicament" 
+                  class="form-control" 
+                  [(ngModel)]="filterNomMedicament" 
+                  (input)="onFilterChange()"
+                  placeholder="Rechercher par nom...">
+              </div>
+            </div>
+          </div>
+
+          <!-- Medicaments Table -->
+          <div class="table-responsive">
+            <table class="table table-striped table-hover">
+              <thead class="table-dark">
+                <tr>
+                  <th>ID</th>
+                  <th>Nom du médicament</th>
+                  <th>Notes</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="loading && filteredMedicaments.length === 0">
+                  <td colspan="4" class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Chargement...</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="!loading && filteredMedicaments.length === 0">
+                  <td colspan="4" class="text-center text-muted">
+                    Aucun médicament trouvé
+                  </td>
+                </tr>
+                <tr *ngFor="let medicament of filteredMedicaments; trackBy: trackByFn">
+                  <td>{{ medicament.id }}</td>
+                  <td>
+                    <strong>{{ medicament.nomMedicament }}</strong>
+                  </td>
+                  <td>
+                    <span *ngIf="medicament.notes; else noNotes">
+                      {{ medicament.notes }}
+                    </span>
+                    <ng-template #noNotes>
+                      <span class="text-muted">-</span>
+                    </ng-template>
+                  </td>
+                  <td class="text-center">
+                    <div class="btn-group" role="group">
+                      <button 
+                        class="action-btn btn-edit" 
+                        (click)="editMedicament(medicament)" 
+                        [disabled]="loading"
+                        title="Modifier">
+                        <i class="fas fa-edit action-icon"></i>
+                      </button>
+                      <button 
+                        class="action-btn btn-delete" 
+                        (click)="deleteMedicament(medicament.id!)" 
+                        [disabled]="loading"
+                        title="Supprimer">
+                        <i class="fas fa-trash action-icon"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <div>
+              <small class="text-muted">
+                Affichage {{ filteredMedicaments.length }} médicament(s)
+              </small>
+            </div>
+            <nav>
+              <ul class="pagination mb-0">
+                <li class="page-item" [class.disabled]="currentPage === 0">
+                  <button class="page-link" (click)="prevPage()" [disabled]="currentPage === 0">
+                    Précédent
+                  </button>
+                </li>
+                <li class="page-item active">
+                  <span class="page-link">{{ currentPage + 1 }}</span>
+                </li>
+                <li class="page-item">
+                  <button class="page-link" (click)="nextPage()">
+                    Suivant
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Medicament Modal -->
+  <ng-template #medicamentFormModal let-modal>
+    <div class="modal-header bg-primary text-white">
+      <h5 class="modal-title">{{ isEditing ? 'Modifier' : 'Ajouter' }} un médicament</h5>
+      <button type="button" class="btn-close btn-close-white" (click)="cancelEdit()" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="medicamentForm" (ngSubmit)="onSubmit()">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="nomMedicament" class="form-label">
+                Nom du médicament <span class="text-danger">*</span>
+              </label>
+              <input 
+                type="text" 
+                class="form-control"
+                id="nomMedicament"
+                formControlName="nomMedicament"
+                [class.is-invalid]="medicamentForm.get('nomMedicament')?.invalid && medicamentForm.get('nomMedicament')?.touched"
+                placeholder="Entrez le nom du médicament">
+              <div class="text-danger" 
+                   *ngIf="medicamentForm.get('nomMedicament')?.invalid && medicamentForm.get('nomMedicament')?.touched">
+                <div *ngIf="medicamentForm.get('nomMedicament')?.errors?.['required']">
+                  Le nom du médicament est requis.
+                </div>
+                <div *ngIf="medicamentForm.get('nomMedicament')?.errors?.['maxlength']">
+                  Le nom ne peut pas dépasser 100 caractères.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="notes" class="form-label">Notes</label>
+              <textarea 
+                class="form-control"
+                id="notes"
+                formControlName="notes"
+                rows="4"
+                [class.is-invalid]="medicamentForm.get('notes')?.invalid && medicamentForm.get('notes')?.touched"
+                placeholder="Notes additionnelles (optionnel)"></textarea>
+              <div class="text-danger" 
+                   *ngIf="medicamentForm.get('notes')?.invalid && medicamentForm.get('notes')?.touched">
+                <div *ngIf="medicamentForm.get('notes')?.errors?.['maxlength']">
+                  Les notes ne peuvent pas dépasser 500 caractères.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button 
+            type="submit" 
+            class="btn btn-success me-2"
+            [disabled]="medicamentForm.invalid || loading">
+            <i class="fas fa-save"></i> {{ isEditing ? 'Mettre à jour' : 'Créer' }}
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-secondary" 
+            (click)="cancelEdit()" 
+            [disabled]="loading">
+            <i class="fas fa-times"></i> Annuler
+          </button>
+        </div>
+      </form>
+    </div>
+  </ng-template>
+</div>

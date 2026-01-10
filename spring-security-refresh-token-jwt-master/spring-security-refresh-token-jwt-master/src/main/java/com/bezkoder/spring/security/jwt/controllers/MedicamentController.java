@@ -12,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/medicaments")
+@CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
 public class MedicamentController {
 
     @Autowired
@@ -32,6 +33,12 @@ public class MedicamentController {
     @GetMapping
     public ResponseEntity<List<MedicamentDTO>> getAllMedicaments() {
         List<MedicamentDTO> medicaments = medicamentService.getAllMedicaments();
+        return ResponseEntity.ok(medicaments);
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<List<MedicamentDTO>> filterMedicamentsByNom(@RequestParam(required = false) String nom) {
+        List<MedicamentDTO> medicaments = medicamentService.filterMedicamentsByNom(nom);
         return ResponseEntity.ok(medicaments);
     }
 

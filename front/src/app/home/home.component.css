@@ -11,7 +11,8 @@
 }
 
 .doctor-img {
-  height: 200px;
+  height: 300px;
+   width: 100%;
   object-fit: cover;
   background-color: #f8f9fa; /* Light background for default image */
 }

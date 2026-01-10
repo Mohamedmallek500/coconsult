@@ -112,8 +112,7 @@
             <p class="card-text text-primary mb-1">{{ doctor.speciality }}</p>
             <p class="card-text"><i class="bi-geo-alt me-2"></i>{{ doctor.adresse }}</p>
             <p class="card-text"><i class="bi-envelope me-2"></i>{{ doctor.email }}</p>
-            <a href="#appointment" class="btn btn-primary mt-2">Book Appointment</a>
-          </div>
+<a [routerLink]="['/appointment/book', doctor.id]" class="btn btn-primary mt-2">Book Appointment</a>          </div>
         </div>
       </div>
       <div class="col-12 text-center" *ngIf="doctors.length === 0">

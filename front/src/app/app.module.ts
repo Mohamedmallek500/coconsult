@@ -1,6 +1,8 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { FullCalendarModule } from '@fullcalendar/angular';
+
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -16,6 +18,21 @@ import { AppointmentComponent } from './appointment/appointment.component';
 import { ContactComponent } from './contact/contact.component';
 import { LoginComponent } from './login/login.component';
 import { AdminUserManagementComponent } from './admin-user-management/admin-user-management.component';
+import { AppointmentBookingComponent } from './appointment-booking/appointment-booking.component';
+import { AuthInterceptor } from './auth.interceptor';
+import { DoctorAppointmentsComponent } from './doctor-appointments/doctor-appointments.component';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { DoctorPatientsListComponent } from './doctor-patients-list/doctor-patients-list.component';
+import { OrdonnanceModalComponent } from './ordonnance-modal/ordonnance-modal.component';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MedicamentManagementComponent } from './medicament-management/medicament-management.component';
+import { AddOrdonnanceModalComponent } from './add-ordonnance-modal/add-ordonnance-modal.component';
+import { MaladieManagementComponent } from './maladie-management/maladie-management.component';
+import { PatientAppointmentsListComponent } from './patient-appointments-list/patient-appointments-list.component';
+import { FicheMedicaleModalComponent } from './fiche-medicale-modal/fiche-medicale-modal.component';
+import { ProfilComponent } from './profil/profil.component';
+import { FloatingChatbotComponent } from './floating-chatbot/floating-chatbot.component';
+import { QuizComponent } from './quiz/quiz.component';
 
 @NgModule({
   declarations: [
@@ -30,7 +47,19 @@ import { AdminUserManagementComponent } from './admin-user-management/admin-user
     ContactComponent,
     LoginComponent,
     AdminUserManagementComponent,
-    
+    AppointmentBookingComponent,
+    DoctorAppointmentsComponent,
+    DoctorPatientsListComponent,
+    OrdonnanceModalComponent,
+    MedicamentManagementComponent,
+    AddOrdonnanceModalComponent,
+    MaladieManagementComponent,
+    PatientAppointmentsListComponent,
+    FicheMedicaleModalComponent,
+    ProfilComponent,
+    FloatingChatbotComponent,
+    QuizComponent
+
   ],
   imports: [
     BrowserModule,
@@ -39,10 +68,15 @@ import { AdminUserManagementComponent } from './admin-user-management/admin-user
     ReactiveFormsModule,
     CommonModule,
     HttpClientModule,
-    
+    FullCalendarModule,
+    NgbModule,
+    MatDialogModule
+
 
   ],
-  providers: [],
+  providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -8,14 +8,14 @@
             <i class="fas fa-plus"></i> Ajouter un utilisateur
           </button>
         </div>
-        
+
         <div class="card-body">
           <!-- Success/Error Messages -->
           <div *ngIf="success" class="alert alert-success alert-dismissible fade show" role="alert">
             {{ success }}
             <button type="button" class="btn-close" (click)="success = ''" aria-label="Close"></button>
           </div>
-          
+
           <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
             {{ error }}
             <button type="button" class="btn-close" (click)="error = ''" aria-label="Close"></button>
@@ -60,190 +60,6 @@
             </div>
           </div>
 
-          <!-- Add/Edit Form -->
-          <div *ngIf="showForm" class="card mb-4">
-            <div class="card-header">
-              <h5>{{ isEditing ? 'Modifier' : 'Ajouter' }} un utilisateur</h5>
-            </div>
-            <div class="card-body">
-              <form [formGroup]="userForm" (ngSubmit)="saveUser()">
-                <div class="row">
-                  <!-- Basic Info -->
-                  <div class="col-md-6">
-                    <div class="form-group mb-3">
-                      <label for="username">Nom d'utilisateur *</label>
-                      <input type="text" id="username" class="form-control" formControlName="username">
-                      <div *ngIf="userForm.get('username')?.invalid && userForm.get('username')?.touched" class="text-danger">
-                        Nom d'utilisateur requis (min 3 caractères)
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="col-md-6">
-                    <div class="form-group mb-3">
-                      <label for="email">Email *</label>
-                      <input type="email" id="email" class="form-control" formControlName="email">
-                      <div *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched" class="text-danger">
-                        Email valide requis
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="col-md-6">
-                    <div class="form-group mb-3">
-                      <label for="password">Mot de passe {{ isEditing ? '(laisser vide pour ne pas changer)' : '*' }}</label>
-                      <input type="password" id="password" class="form-control" formControlName="password">
-                      <div *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched" class="text-danger">
-                        Mot de passe requis (min 6 caractères)
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="col-md-6">
-                    <div class="form-group mb-3">
-                      <label for="role">Rôle *</label>
-                      <select id="role" class="form-control" formControlName="role">
-                        <option value="patient">Patient</option>
-                        <option value="doctor">Docteur</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <div class="col-md-6">
-                    <div class="form-group mb-3">
-                      <label for="nom">Nom *</label>
-                      <input type="text" id="nom" class="form-control" formControlName="nom">
-                    </div>
-                  </div>
-                  
-                  <div class="col-md-6">
-                    <div class="form-group mb-3">
-                      <label for="prenom">Prénom *</label>
-                      <input type="text" id="prenom" class="form-control" formControlName="prenom">
-                    </div>
-                  </div>
-                  
-                  <div class="col-md-6">
-                    <div class="form-group mb-3">
-                      <label for="numtel">Téléphone *</label>
-                      <input type="text" id="numtel" class="form-control" formControlName="numtel">
-                    </div>
-                  </div>
-                  
-                  <div class="col-md-6">
-                    <div class="form-group mb-3">
-                      <label for="dateNaissance">Date de naissance *</label>
-                      <input type="date" id="dateNaissance" class="form-control" formControlName="dateNaissance">
-                    </div>
-                  </div>
-                  
-                  <div class="col-md-6">
-                    <div class="form-group mb-3">
-                      <label for="adresse">Adresse *</label>
-                      <input type="text" id="adresse" class="form-control" formControlName="adresse">
-                    </div>
-                  </div>
-                  
-                  <div class="col-md-6">
-                    <div class="form-group mb-3">
-                      <label for="cin">CIN *</label>
-                      <input type="text" id="cin" class="form-control" formControlName="cin">
-                    </div>
-                  </div>
-
-                  <!-- Image Upload -->
-                  <div class="col-md-6">
-                    <div class="form-group mb-3">
-                      <label for="image">Image de profil</label>
-                      hlad<input type="file" id="image" class="form-control" (change)="onFileSelected($event)" accept="image/jpeg,image/png">
-                      <div *ngIf="imageError" class="text-danger">{{ imageError }}</div>
-                      <div *ngIf="imagePreview" class="mt-2">
-                        <img [src]="imagePreview" class="preview-image" alt="Image Preview">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Patient specific fields -->
-                <div *ngIf="userForm.get('role')?.value === 'patient'" class="row">
-                  <div class="col-md-6">
-                    <div class="form-group mb-3">
-                      <label for="numCnss">Numéro CNSS *</label>
-                      <input type="text" id="numCnss" class="form-control" formControlName="numCnss">
-                    </div>
-                  </div>
-                  
-                  <div class="col-md-6">
-                    <div class="form-group mb-3">
-                      <label for="numDossier">Numéro de dossier *</label>
-                      <input type="text" id="numDossier" class="form-control" formControlName="numDossier">
-                    </div>
-                  </div>
-                  
-                  <div class="col-md-6">
-                    <div class="form-group mb-3">
-                      <label for="nomDocteurFamille">Nom du docteur de famille</label>
-                      <input type="text" id="nomDocteurFamille" class="form-control" formControlName="nomDocteurFamille">
-                    </div>
-                  </div>
-                  
-                  <div class="col-md-6">
-                    <div class="form-group mb-3">
-                      <label for="mpsi">MPSI</label>
-                      <input type="text" id="mpsi" class="form-control" formControlName="mpsi">
-                    </div>
-                  </div>
-                  
-                  <div class="col-12">
-                    <div class="form-group mb-3">
-                      <label>Maladies</label>
-                      <input type="text" class="form-control mb-2" placeholder="Rechercher une maladie..." 
-                             [(ngModel)]="maladieSearch" (input)="filterMaladies()" [ngModelOptions]="{standalone: true}">
-                      <div class="d-flex flex-wrap">
-                        <div *ngFor="let maladie of filteredMaladies" class="form-check me-3 mb-2">
-                          <input class="form-check-input" type="checkbox" 
-                                [id]="'maladie_' + maladie.id"
-                                [checked]="isMaladieSelected(maladie.id)"
-                                (change)="onMaladieChange($event, maladie.id)">
-                          <label class="form-check-label" [for]="'maladie_' + maladie.id">
-                            {{ maladie.name }}
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Doctor specific fields -->
-                <div *ngIf="userForm.get('role')?.value === 'doctor'" class="row">
-                  <div class="col-md-6">
-                    <div class="form-group mb-3">
-                      <label for="speciality">Spécialité *</label>
-                      <input type="text" id="speciality" class="form-control" formControlName="speciality">
-                    </div>
-                  </div>
-                  
-                  <div class="col-12">
-                    <div class="form-group mb-3">
-                      <label for="bio">Bio *</label>
-                      <textarea id="bio" class="form-control" formControlName="bio" rows="4"></textarea>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <button type="submit" class="btn btn-success me-2" [disabled]="userForm.invalid || loading">
-                    <i class="fas fa-save"></i> {{ isEditing ? 'Mettre à jour' : 'Créer' }}
-                  </button>
-                  <button type="button" class="btn btn-secondary" (click)="cancelEdit()">
-                    <i class="fas fa-times"></i> Annuler
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-
           <!-- Users Table -->
           <div class="table-responsive">
             <table class="table table-striped table-hover">
@@ -275,40 +91,50 @@
                   <td>{{ user.numtel }}</td>
                   <td>{{ user.role }}</td>
                   <td>{{ user.cin }}</td>
-                  <td>
-                    <span *ngIf="user.role === 'doctor'" class="badge"
-                          [class.bg-success]="user.isApproved"
-                          [class.bg-danger]="!user.isApproved">
-                      {{ user.isApproved ? 'Approuvé' : 'En attente' }}
-                    </span>
-                    <span *ngIf="user.role !== 'doctor'" class="badge bg-info">Actif</span>
-                  </td>
-                  <td>
-                    <div class="btn-group" role="group">
-                      <button class="btn btn-sm btn-outline-primary me-2" 
-                              (click)="editUser(user)" 
-                              [disabled]="loading">
-                        <i class="fas fa-edit me-1"></i> Modifier
-                      </button>
-                      <button class="btn btn-sm btn-outline-danger me-2" 
-                              (click)="deleteUser(user)" 
-                              [disabled]="loading">
-                        <i class="fas fa-trash me-1"></i> Supprimer
-                      </button>
-                      <div *ngIf="user.role === 'doctor'" class="btn-group">
-                        <button class="btn btn-sm btn-success me-2" 
-                                (click)="approveDoctor(user)" 
-                                [disabled]="loading || user.isApproved">
-                          <i class="fas fa-check me-1"></i> Approuver
-                        </button>
-                        <button class="btn btn-sm btn-danger" 
-                                (click)="refuseDoctor(user)" 
-                                [disabled]="loading">
-                          <i class="fas fa-times me-1"></i> Refuser
-                        </button>
-                      </div>
-                    </div>
-                  </td>
+           <td class="status-cell">
+  <span *ngIf="user.role === 'doctor'" class="badge with-icon"
+        [class.bg-success]="user.isApproved"
+        [class.bg-danger]="!user.isApproved">
+    <i class="fas" 
+       [class.fa-check-circle]="user.isApproved"
+       [class.fa-clock]="!user.isApproved"></i>
+    {{ user.isApproved ? 'Approuvé' : 'En attente' }}
+  </span>
+  <span *ngIf="user.role !== 'doctor'" class="badge with-icon bg-info">
+    <i class="fas fa-check-circle"></i>
+    Actif
+  </span>
+</td>
+                 <td>
+  <div class="btn-group" role="group">
+    <button class="action-btn btn-edit" 
+            (click)="editUser(user)" 
+            [disabled]="loading"
+            title="Modifier">
+      <i class="fas fa-edit action-icon"></i>
+    </button>
+    <button class="action-btn btn-delete" 
+            (click)="deleteUser(user)" 
+            [disabled]="loading"
+            title="Supprimer">
+      <i class="fas fa-trash action-icon"></i>
+    </button>
+    <div *ngIf="user.role === 'doctor'" class="btn-group">
+      <button class="action-btn btn-approve" 
+              (click)="approveDoctor(user)" 
+              [disabled]="loading || user.isApproved"
+              title="Approuver">
+        <i class="fas fa-check action-icon"></i>
+      </button>
+      <button class="action-btn btn-refuse" 
+              (click)="refuseDoctor(user)" 
+              [disabled]="loading"
+              title="Refuser">
+        <i class="fas fa-times action-icon"></i>
+      </button>
+    </div>
+  </div>
+</td>
                 </tr>
                 <tr *ngIf="filteredUsers.length === 0 && !loading">
                   <td colspan="9" class="text-center">Aucun utilisateur trouvé</td>
@@ -353,4 +179,189 @@
       </div>
     </div>
   </div>
+
+  <!-- Add/Edit User Modal -->
+  <ng-template #userFormModal let-modal>
+    <div class="modal-header bg-primary text-white">
+      <h5 class="modal-title">{{ isEditing ? 'Modifier' : 'Ajouter' }} un utilisateur</h5>
+      <button type="button" class="btn-close btn-close-white" (click)="cancelEdit()" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="userForm" (ngSubmit)="saveUser()">
+        <div class="row">
+          <!-- Basic Info -->
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="username">Nom d'utilisateur *</label>
+              <input type="text" id="username" class="form-control" formControlName="username">
+              <div *ngIf="userForm.get('username')?.invalid && userForm.get('username')?.touched" class="text-danger">
+                Nom d'utilisateur requis (min 3 caractères)
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="email">Email *</label>
+              <input type="email" id="email" class="form-control" formControlName="email">
+              <div *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched" class="text-danger">
+                Email valide requis
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="password">Mot de passe {{ isEditing ? '(laisser vide pour ne pas changer)' : '*' }}</label>
+              <input type="password" id="password" class="form-control" formControlName="password">
+              <div *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched" class="text-danger">
+                Mot de passe requis (min 6 caractères)
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="role">Rôle *</label>
+              <select id="role" class="form-control" formControlName="role">
+                <option value="patient">Patient</option>
+                <option value="doctor">Docteur</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="nom">Nom *</label>
+              <input type="text" id="nom" class="form-control" formControlName="nom">
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="prenom">Prénom *</label>
+              <input type="text" id="prenom" class="form-control" formControlName="prenom">
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="numtel">Téléphone *</label>
+              <input type="text" id="numtel" class="form-control" formControlName="numtel">
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="dateNaissance">Date de naissance *</label>
+              <input type="date" id="dateNaissance" class="form-control" formControlName="dateNaissance">
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="adresse">Adresse *</label>
+              <input type="text" id="adresse" class="form-control" formControlName="adresse">
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="cin">CIN *</label>
+              <input type="text" id="cin" class="form-control" formControlName="cin">
+            </div>
+          </div>
+
+          <!-- Image Upload -->
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="image">Image de profil</label>
+              <input type="file" id="image" class="form-control" (change)="onFileSelected($event)" accept="image/jpeg,image/png">
+              <div *ngIf="imageError" class="text-danger">{{ imageError }}</div>
+              <div *ngIf="imagePreview" class="mt-2">
+                <img [src]="imagePreview" class="preview-image" alt="Image Preview">
+              </div>
+            </div>
+          </div>
+
+          <!-- Patient specific fields -->
+          <div *ngIf="userForm.get('role')?.value === 'patient'" class="row">
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label for="numCnss">Numéro CNSS *</label>
+                <input type="text" id="numCnss" class="form-control" formControlName="numCnss">
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label for="numDossier">Numéro de dossier *</label>
+                <input type="text" id="numDossier" class="form-control" formControlName="numDossier">
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label for="nomDocteurFamille">Nom du docteur de famille</label>
+                <input type="text" id="nomDocteurFamille" class="form-control" formControlName="nomDocteurFamille">
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label for="mpsi">MPSI</label>
+                <input type="text" id="mpsi" class="form-control" formControlName="mpsi">
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-group mb-3">
+                <label>Maladies</label>
+                <input type="text" class="form-control mb-2" placeholder="Rechercher une maladie..." 
+                       [(ngModel)]="maladieSearch" (input)="filterMaladies()" [ngModelOptions]="{standalone: true}">
+                <div class="d-flex flex-wrap">
+                  <div *ngFor="let maladie of filteredMaladies" class="form-check me-3 mb-2">
+                    <input class="form-check-input" type="checkbox" 
+                          [id]="'maladie_' + maladie.id"
+                          [checked]="isMaladieSelected(maladie.id)"
+                          (change)="onMaladieChange($event, maladie.id)">
+                    <label class="form-check-label" [for]="'maladie_' + maladie.id">
+                      {{ maladie.name }}
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Doctor specific fields -->
+          <div *ngIf="userForm.get('role')?.value === 'doctor'" class="row">
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label for="speciality">Spécialité *</label>
+                <input type="text" id="speciality" class="form-control" formControlName="speciality">
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-group mb-3">
+                <label for="bio">Bio *</label>
+                <textarea id="bio" class="form-control" formControlName="bio" rows="4"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success me-2" [disabled]="userForm.invalid || loading">
+            <i class="fas fa-save"></i> {{ isEditing ? 'Mettre à jour' : 'Créer' }}
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="cancelEdit()" [disabled]="loading">
+            <i class="fas fa-times"></i> Annuler
+          </button>
+        </div>
+      </form>
+    </div>
+  </ng-template>
 </div>

@@ -1,0 +1,478 @@
+/* user-management.component.css - Version avec icônes */
+
+/* Structure de base */
+.container-fluid {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+/* Carte principale */
+.card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* En-tête */
+.card-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 1.25rem 1.5rem;
+}
+
+.card-title {
+  font-weight: 700 !important;
+  color: #2c3e50;
+  font-size: 1.5rem;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Boutons */
+.btn-primary {
+  background-color: #3498db;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+}
+
+.btn-primary:hover {
+  background-color: #2980b9;
+}
+
+/* Tableau */
+.table {
+  margin-bottom: 0;
+}
+
+.table thead th {
+  background-color: #34495e;
+  color: #ffffff !important;
+  font-weight: 600;
+  padding: 14px 16px;
+  border: none;
+  position: sticky;
+  top: 0;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.table td {
+  padding: 12px 15px;
+  vertical-align: middle;
+}
+
+/* Avatar */
+.user-avatar-container {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #f1f1f1;
+}
+
+.user-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Badges */
+.badge {
+  font-weight: 500;
+  padding: 0.35em 0.65em;
+  border-radius: 4px;
+}
+
+.bg-success { background-color: #27ae60; }
+.bg-danger { background-color: #e74c3c; }
+.bg-info { background-color: #3498db; }
+
+/* Boutons d'action - Nouveau style avec icônes */
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 3px;
+  transition: all 0.2s;
+  border: none;
+  background-color: transparent;
+}
+
+.action-btn:hover {
+  transform: scale(1.1);
+}
+
+.btn-edit {
+  color: #3498db;
+}
+
+.btn-edit:hover {
+  background-color: rgba(52, 152, 219, 0.1);
+}
+
+.btn-delete {
+  color: #e74c3c;
+}
+
+.btn-delete:hover {
+  background-color: rgba(231, 76, 60, 0.1);
+}
+
+.btn-approve {
+  color: #27ae60;
+}
+
+.btn-approve:hover {
+  background-color: rgba(39, 174, 96, 0.1);
+}
+
+.btn-refuse {
+  color: #e74c3c;
+}
+
+.btn-refuse:hover {
+  background-color: rgba(231, 76, 60, 0.1);
+}
+
+/* Icônes */
+.action-icon {
+  font-size: 1rem;
+}
+
+/* Pagination */
+.pagination .page-item.active .page-link {
+  background-color: #3498db;
+  border-color: #3498db;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .table-responsive {
+    border: none;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Styles améliorés pour la colonne Statut */
+.status-cell {
+  text-align: center;
+  padding: 8px 12px !important;
+}
+
+.badge {
+  font-weight: 600;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  border-radius: 20px;
+  min-width: 80px;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+/* Statut Approuvé */
+.bg-success {
+  background-color: #2ecc71 !important;
+  color: white;
+}
+
+/* Statut En attente */
+.bg-danger {
+  background-color: #e67e22 !important;
+  color: white;
+}
+
+/* Statut Actif */
+.bg-info {
+  background-color: #3498db !important;
+  color: white;
+}
+
+/* Effet de survol */
+.badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Version avec icônes */
+.badge.with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.badge-icon {
+  font-size: 0.8em;
+}
+
+
+
+
+
+
+/* Styles pour la modale */
+.modal-header {
+  background: linear-gradient(135deg, #3498db, #4799ec);
+  color: white;
+  padding: 1.5rem;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-header::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+}
+
+.modal-title {
+  font-weight: 600;
+  font-size: 1.5rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.modal-title::before {
+  content: "🦠";
+  font-size: 1.2em;
+  margin-right: 12px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+
+
+
+
+
+
+.btn-close {
+  filter: invert(1);
+  opacity: 0.8;
+  transition: all 0.2s;
+}
+
+.btn-close:hover {
+  opacity: 1;
+  transform: rotate(90deg);
+}
+
+.modal-body {
+  padding: 2rem;
+  background-color: #f8fafc;
+}
+
+.modal-footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-radius: 0 0 8px 8px;
+}
+
+/* Form styles */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.form-control {
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  height: calc(2.25rem + 2px);
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+/* Boutons de la modale */
+.modal-footer .btn {
+  min-width: 120px;
+  padding: 0.625rem 1.25rem;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.modal-footer .btn-success {
+  background-color: #2ecc71;
+  border-color: #2ecc71;
+  color: white;
+}
+
+.modal-footer .btn-success:hover {
+  background-color: #27ae60;
+  border-color: #27ae60;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(46, 204, 113, 0.2);
+}
+
+.modal-footer .btn-secondary:hover {
+  background-color: #f1f3f5;
+  border-color: #adb5bd;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+.modal-footer .btn i {
+  font-size: 0.9em;
+}
+
+
+/* Preview image */
+.preview-image {
+  max-width: 100px;
+  max-height: 100px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  padding: 4px;
+  background-color: white;
+}
+
+/* Sections spécifiques aux rôles */
+.role-specific-section {
+  background-color: #f1f8fe;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  border-left: 4px solid #3498db;
+}
+
+/* Checkboxes pour les maladies */
+.form-check-input:checked {
+  background-color: #3498db;
+  border-color: #3498db;
+}
+
+.form-check-label {
+  margin-left: 0.5rem;
+  color: #495057;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal-body {
+    padding: 1.5rem;
+  }
+  
+  .role-specific-section {
+    padding: 1rem;
+  }
+}
+
+/* Animation d'entrée */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-content {
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+/* Style pour les champs obligatoires */
+.required-field::after {
+  content: " *";
+  color: #e74c3c;
+}
+
+/* Amélioration du textarea */
+textarea.form-control {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Style pour la recherche de maladies */
+.maladie-search-input {
+  border-radius: 20px;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Style pour les cases à cocher des maladies */
+.maladie-checkbox-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.maladie-checkbox {
+  background-color: #ecf0f1;
+  border-radius: 20px;
+  padding: 0.3rem 0.8rem;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.maladie-checkbox:hover {
+  background-color: #d6eaf8;
+}
+
+.maladie-checkbox input[type="checkbox"] {
+  margin-right: 0.5rem;
+}

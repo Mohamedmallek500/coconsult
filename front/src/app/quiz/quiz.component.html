@@ -1,0 +1,170 @@
+<div class="quiz-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Chargement...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !isLoading" class="error-container">
+    <div class="alert alert-danger">
+      <i class="fas fa-exclamation-triangle"></i>
+      {{ error }}
+    </div>
+    <button class="btn btn-primary" (click)="goBack()">
+      <i class="fas fa-arrow-left"></i>
+      Retour
+    </button>
+  </div>
+
+  <!-- Quiz Completed State -->
+  <div *ngIf="isQuizCompleted && !isLoading" class="completion-container">
+    <div class="completion-card">
+      <div class="completion-icon">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <h2>Quiz Terminé !</h2>
+      <p>Félicitations ! Vous avez terminé le quiz "{{ quiz?.title }}".</p>
+      
+      <!-- Response Summary -->
+      <div class="response-summary">
+        <h3>Résumé de vos réponses :</h3>
+        <div class="response-list">
+          <div *ngFor="let response of responses" class="response-item">
+            <strong>Q: {{ response.question }}</strong>
+            <p>R: {{ response.response }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="completion-actions">
+        <button class="btn btn-secondary" (click)="restartQuiz()">
+          <i class="fas fa-redo"></i>
+          Recommencer
+        </button>
+        <button class="btn btn-primary" (click)="goBack()">
+          <i class="fas fa-home"></i>
+          Retour au Dashboard
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz Content -->
+  <div *ngIf="quiz && currentQuestion && !isQuizCompleted && !isLoading" class="quiz-content">
+    <!-- Quiz Header -->
+    <div class="quiz-header">
+      <button class="btn btn-outline-secondary back-btn" (click)="goBack()">
+        <i class="fas fa-arrow-left"></i>
+        Retour
+      </button>
+      <div class="quiz-info">
+        <h1>{{ quiz.title }}</h1>
+        <p *ngIf="quiz.description" class="quiz-description">{{ quiz.description }}</p>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-container" *ngIf="!showFollowUp">
+      <div class="progress-info">
+        <span>Question {{ currentQuestionIndex + 1 }} sur {{ quiz.questions.length }}</span>
+        <span>{{ getProgressPercentage() }}%</span>
+      </div>
+      <div class="progress">
+        <div 
+          class="progress-bar" 
+          [style.width.%]="getProgressPercentage()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Follow-up Indicator -->
+    <div *ngIf="showFollowUp" class="followup-indicator">
+      <i class="fas fa-arrow-right"></i>
+      <span>Question de suivi ({{ currentFollowUpIndex + 1 }}/{{ followUpQuestions.length }})</span>
+    </div>
+
+    <!-- Question Card -->
+    <div class="question-card">
+      <div class="question-header">
+        <h3 class="question-content">{{ currentQuestion.content }}</h3>
+        <span class="question-type-badge" [ngClass]="'badge-' + currentQuestion.type.toLowerCase()">
+          {{ getQuestionTypeLabel(currentQuestion.type) }}
+        </span>
+      </div>
+
+      <!-- YES/NO Question -->
+      <div *ngIf="currentQuestion.type === QuestionType.YES_NO" class="yes-no-options">
+        <div class="option-group">
+          <div class="option-item">
+            <input 
+              type="radio" 
+              id="yes-option" 
+              name="yesno" 
+              value="Yes" 
+              [(ngModel)]="selectedOption">
+            <label for="yes-option" class="option-label yes-label">
+              <i class="fas fa-check"></i>
+              Oui
+            </label>
+          </div>
+          <div class="option-item">
+            <input 
+              type="radio" 
+              id="no-option" 
+              name="yesno" 
+              value="No" 
+              [(ngModel)]="selectedOption">
+            <label for="no-option" class="option-label no-label">
+              <i class="fas fa-times"></i>
+              Non
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Multiple Choice Question -->
+      <div *ngIf="currentQuestion.type === QuestionType.MULTIPLE_CHOICE" class="multiple-choice-options">
+        <div class="option-group">
+          <div *ngFor="let option of currentQuestion.options; let i = index" class="option-item">
+            <input 
+              type="radio" 
+              [id]="'option-' + i" 
+              name="multiple-choice" 
+              [value]="option" 
+              [(ngModel)]="selectedOption">
+            <label [for]="'option-' + i" class="option-label">
+<span class="option-bullet">{{ getOptionLetter(i) }}</span>
+              {{ option }}
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Text Question -->
+      <div *ngIf="currentQuestion.type === QuestionType.TEXT" class="text-input-container">
+        <textarea 
+          class="form-control text-response" 
+          [(ngModel)]="userResponse" 
+          placeholder="Tapez votre réponse ici..."
+          rows="4">
+        </textarea>
+        <div class="character-count">
+          {{ userResponse.length }} caractères
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="submit-container">
+        <button 
+          class="btn btn-primary btn-submit" 
+          (click)="submitResponse()" 
+          [disabled]="isLoading || !hasValidResponse()">
+          <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!isLoading" class="fas fa-paper-plane"></i>
+          {{ isLoading ? 'Envoi...' : 'Suivant' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

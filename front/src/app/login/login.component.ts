@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthServiceService } from 'src/services/auth-service.service';
 import { MaladieService } from 'src/services/MaladieService.service';
 import { User } from 'src/models/User.model';
@@ -11,13 +12,8 @@ import { Maladie } from 'src/models/Maladie.model';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
-  user: User = {
-    email: '',
-    password: '',
-    role: 'patient',
-    dossierfile: []
-  };
-
+  loginForm: FormGroup;
+  registerForm: FormGroup;
   selectedFile: File | null = null;
   showLoginForm: boolean = true;
   isLoading: boolean = false;
@@ -27,11 +23,47 @@ export class LoginComponent implements OnInit {
   constructor(
     private authService: AuthServiceService,
     private router: Router,
-    private maladieService: MaladieService
-  ) {}
+    private maladieService: MaladieService,
+    private fb: FormBuilder
+  ) {
+    this.loginForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]]
+    });
+
+    this.registerForm = this.fb.group({
+      username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(20)]],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(40)]],
+      numtel: ['', [Validators.maxLength(15)]],
+      nom: ['', [Validators.maxLength(50)]],
+      prenom: ['', [Validators.maxLength(50)]],
+      dateNaissance: [''],
+      adresse: ['', [Validators.maxLength(255)]],
+      cin: ['', [Validators.maxLength(20)]],
+      role: ['patient', [Validators.required]],
+      numCnss: ['', [Validators.maxLength(20)]],
+      nomDocteurFamille: ['', [Validators.maxLength(100)]],
+      mpsi: ['', [Validators.maxLength(20)]],
+      numDossier: ['', [Validators.maxLength(20)]],
+      dossierfile: [[]],
+      speciality: ['', [Validators.maxLength(100)]],
+      bio: ['', [Validators.maxLength(500)]]
+    });
+  }
 
   ngOnInit(): void {
     this.loadMaladies();
+    this.updateFormValidators();
+    // Check if already authenticated
+    this.authService.isAuthenticated$.subscribe(isAuthenticated => {
+      if (isAuthenticated) {
+        this.authService.userRole$.subscribe(role => {
+          const redirectUrl = role === 'doctor' ? '/home' : '/home';
+          this.router.navigate([redirectUrl]);
+        });
+      }
+    });
   }
 
   loadMaladies(): void {
@@ -46,16 +78,45 @@ export class LoginComponent implements OnInit {
     });
   }
 
+  updateFormValidators(): void {
+    const roleControl = this.registerForm.get('role');
+    const numCnssControl = this.registerForm.get('numCnss');
+    const numDossierControl = this.registerForm.get('numDossier');
+    const specialityControl = this.registerForm.get('speciality');
+    const bioControl = this.registerForm.get('bio');
+
+    roleControl?.valueChanges.subscribe(role => {
+      if (role === 'patient') {
+        numCnssControl?.setValidators([Validators.required, Validators.maxLength(20)]);
+        numDossierControl?.setValidators([Validators.required, Validators.maxLength(20)]);
+        specialityControl?.clearValidators();
+        bioControl?.clearValidators();
+      } else {
+        numCnssControl?.clearValidators();
+        numDossierControl?.clearValidators();
+        specialityControl?.setValidators([Validators.required, Validators.maxLength(100)]);
+        bioControl?.setValidators([Validators.required, Validators.maxLength(500)]);
+      }
+      numCnssControl?.updateValueAndValidity();
+      numDossierControl?.updateValueAndValidity();
+      specialityControl?.updateValueAndValidity();
+      bioControl?.updateValueAndValidity();
+    });
+  }
+
+  setRole(role: string): void {
+    this.registerForm.get('role')?.setValue(role);
+  }
+
   toggleMaladieSelection(maladieId: number): void {
-    if (!this.user.dossierfile) {
-      this.user.dossierfile = [];
-    }
-    const index = this.user.dossierfile.indexOf(maladieId);
+    const dossierfile = this.registerForm.get('dossierfile')?.value || [];
+    const index = dossierfile.indexOf(maladieId);
     if (index > -1) {
-      this.user.dossierfile.splice(index, 1); // Retirer si déjà sélectionné
+      dossierfile.splice(index, 1);
     } else {
-      this.user.dossierfile.push(maladieId); // Ajouter sinon
+      dossierfile.push(maladieId);
     }
+    this.registerForm.get('dossierfile')?.setValue([...dossierfile]);
   }
 
   toggleForm(event: Event): void {
@@ -66,12 +127,8 @@ export class LoginComponent implements OnInit {
   }
 
   resetForm(): void {
-    this.user = {
-      email: '',
-      password: '',
-      role: 'patient',
-      dossierfile: []
-    };
+    this.loginForm.reset({ email: '', password: '' });
+    this.registerForm.reset({ role: 'patient', dossierfile: [] });
     this.selectedFile = null;
   }
 
@@ -79,14 +136,12 @@ export class LoginComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       this.selectedFile = input.files[0];
-      // Validation du type de fichier
       const validTypes = ['image/jpeg', 'image/png'];
       if (!validTypes.includes(this.selectedFile.type)) {
         this.errorMessage = 'Seuls les fichiers JPEG ou PNG sont autorisés';
         this.selectedFile = null;
         return;
       }
-      // Validation de la taille (10MB = 10 * 1024 * 1024 octets)
       if (this.selectedFile.size > 10 * 1024 * 1024) {
         this.errorMessage = 'L\'image ne doit pas dépasser 10MB';
         this.selectedFile = null;
@@ -95,66 +150,58 @@ export class LoginComponent implements OnInit {
     } else {
       this.selectedFile = null;
     }
-    // Réinitialiser le message d'erreur si le fichier est valide
     if (this.selectedFile && this.errorMessage?.includes('image')) {
       this.errorMessage = null;
     }
   }
 
   login(): void {
-    if (!this.user.email || !this.user.password) {
-      this.errorMessage = 'Veuillez remplir tous les champs requis';
+    if (this.loginForm.invalid) {
+      this.errorMessage = 'Veuillez remplir tous les champs correctement';
+      this.loginForm.markAllAsTouched();
       return;
     }
 
     this.isLoading = true;
     this.errorMessage = null;
 
-    this.authService.login(this.user.email, this.user.password).subscribe({
+    const { email, password } = this.loginForm.value;
+    this.authService.login(email, password).subscribe({
       next: (response) => {
         this.isLoading = false;
+        console.log('Login successful, sessionStorage:', {
+          user_name: sessionStorage.getItem('user_name'),
+          user_role: sessionStorage.getItem('user_role'),
+          user_id: sessionStorage.getItem('user_id')
+        }); // Log sessionStorage
         const role = response.roles?.[0] || 'patient';
         const redirectUrl = role === 'doctor' ? '/home' : '/home';
         this.router.navigate([redirectUrl]);
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.error?.message || 'Échec de la connexion';
+        this.errorMessage = err.message || 'Échec de la connexion';
+        console.error('Login failed:', err);
       }
     });
   }
 
   onRegister(): void {
-    if (!this.user.email || !this.user.password || !this.user.username) {
-      this.errorMessage = 'Veuillez remplir tous les champs requis (nom d\'utilisateur, email, mot de passe)';
+    if (this.registerForm.invalid) {
+      this.errorMessage = 'Veuillez remplir tous les champs requis correctement';
+      this.registerForm.markAllAsTouched();
       return;
-    }
-
-    if (this.user.role === 'patient' && (!this.user.numCnss || !this.user.numDossier)) {
-      this.errorMessage = 'Numéro CNSS et numéro de dossier sont requis pour les patients';
-      return;
-    }
-
-    if (this.user.role === 'doctor' && (!this.user.speciality || !this.user.bio)) {
-      this.errorMessage = 'Spécialité et bio sont requis pour les médecins';
-      return;
-    }
-
-    // Assure que dossierfile est un tableau de nombres
-    if (!this.user.dossierfile) {
-      this.user.dossierfile = [];
-    } else {
-      this.user.dossierfile = this.user.dossierfile
-        .map(id => Number(id))
-        .filter(id => !isNaN(id));
     }
 
     this.isLoading = true;
     this.errorMessage = null;
 
-    const registerObservable = this.user.role === 'patient'
-      ? this.authService.registerPatient(this.user, this.selectedFile)
-      : this.authService.registerDoctor(this.user, this.selectedFile);
+    const user: User = this.registerForm.value;
+    user.dossierfile = user.dossierfile?.map(id => Number(id)).filter(id => !isNaN(id)) || [];
+
+    const registerObservable = user.role === 'patient'
+      ? this.authService.registerPatient(user, this.selectedFile)
+      : this.authService.registerDoctor(user, this.selectedFile);
 
     registerObservable.subscribe({
       next: () => {
@@ -165,7 +212,7 @@ export class LoginComponent implements OnInit {
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.error?.message || 'Échec de l\'inscription';
+        this.errorMessage = err.message || 'Échec de l\'inscription';
       }
     });
   }

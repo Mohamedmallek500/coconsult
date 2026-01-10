@@ -2,12 +2,18 @@ package com.bezkoder.spring.security.jwt.models;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
 @Table(name = "ordonnances")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Ordonnance {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,45 +35,9 @@ public class Ordonnance {
             inverseJoinColumns = @JoinColumn(name = "medicament_id"))
     private Set<Medicament> medicaments = new HashSet<>();
 
-    public Ordonnance() {
-    }
-
     public Ordonnance(Patient patient, Doctor doctor, Set<Medicament> medicaments) {
         this.patient = patient;
         this.doctor = doctor;
-        this.medicaments = medicaments;
-    }
-
-    // Getters and setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Patient getPatient() {
-        return patient;
-    }
-
-    public void setPatient(Patient patient) {
-        this.patient = patient;
-    }
-
-    public Doctor getDoctor() {
-        return doctor;
-    }
-
-    public void setDoctor(Doctor doctor) {
-        this.doctor = doctor;
-    }
-
-    public Set<Medicament> getMedicaments() {
-        return medicaments;
-    }
-
-    public void setMedicaments(Set<Medicament> medicaments) {
         this.medicaments = medicaments;
     }
 }

@@ -1,0 +1,98 @@
+<div class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2>Ordonnance du rendez-vous</h2>
+      <button mat-icon-button (click)="close()" aria-label="Fermer">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Loading State -->
+      <div class="loading-container" *ngIf="loading">
+        <div class="spinner"></div>
+        <p>Chargement de l'ordonnance...</p>
+      </div>
+
+      <!-- Error State -->
+      <div class="error-container" *ngIf="error && !loading">
+        <div class="error-message">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>{{ error }}</span>
+        </div>
+      </div>
+
+      <!-- Ordonnance Details -->
+      <div class="ordonnance-details" *ngIf="!loading && !error && ordonnance">
+        <div class="ordonnance-card">
+          <div class="ordonnance-info">
+            <h3>Ordonnance #{{ ordonnance.id }}</h3>
+            
+            <div class="info-section">
+              <div class="info-item">
+                <i class="fas fa-user-md"></i>
+                <strong>Docteur:</strong>
+                <span>{{ ordonnance.doctor?.nom || 'Inconnu' }} {{ ordonnance.doctor?.prenom || '' }}</span>
+              </div>
+              
+              <div class="info-item">
+                <i class="fas fa-user"></i>
+                <strong>Patient:</strong>
+                <span>{{ ordonnance.patient?.nom || 'Inconnu' }} {{ ordonnance.patient?.prenom || '' }}</span>
+              </div>
+              
+              <div class="info-item" *ngIf="ordonnance.patient?.dateNaissance">
+                <i class="fas fa-calendar"></i>
+                <strong>Date naissance:</strong>
+<span>{{ formatDate(ordonnance.patient?.dateNaissance || '') }}</span>
+              </div>
+
+              <div class="info-item" *ngIf="ordonnance.patient?.cin">
+                <i class="fas fa-id-card"></i>
+                <strong>CIN:</strong>
+<span>{{ ordonnance.patient?.cin || '' }}</span>
+              </div>
+
+              <div class="info-item" *ngIf="ordonnance.patient?.numCnss">
+                <i class="fas fa-shield-alt"></i>
+                <strong>N° CNSS:</strong>
+<span>{{ ordonnance.patient?.numCnss || '' }}</span>
+              </div>
+            </div>
+
+            <div class="medications-section">
+              <h4>Médicaments prescrits</h4>
+              <ul class="medications-list" *ngIf="ordonnance.medicaments && ordonnance.medicaments.length > 0">
+                <li class="medication-item" *ngFor="let medicament of ordonnance.medicaments">
+                  <span class="medication-name">{{ medicament.nomMedicament }}</span>
+                  <span class="medication-notes" *ngIf="medicament.notes">{{ medicament.notes }}</span>
+                </li>
+              </ul>
+              <div class="empty-medications" *ngIf="!ordonnance.medicaments || ordonnance.medicaments.length === 0">
+                <i class="fas fa-info-circle"></i>
+                <p>Aucun médicament prescrit</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Ordonnance -->
+      <div class="no-ordonnance" *ngIf="!loading && !error && !ordonnance">
+        <i class="fas fa-prescription-bottle"></i>
+        <p>Aucune ordonnance trouvée</p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="close()">
+        <i class="fas fa-times"></i>
+        Fermer
+      </button>
+      <button class="btn-primary" *ngIf="!loading && !error && ordonnance" (click)="printOrdonnance()">
+        <i class="fas fa-print"></i>
+        Imprimer PDF
+      </button>
+    </div>
+  </div>
+</div>

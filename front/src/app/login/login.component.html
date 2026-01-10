@@ -8,21 +8,25 @@
             <h1 class="h3 fw-bold" style="color: #0d6efd;">Medic Care</h1>
           </div>
 
-          <!-- Formulaire de Connexion -->
+          <!-- Login Form -->
           <div class="card shadow-sm p-4" style="border-radius: 15px; border: none;" *ngIf="showLoginForm">
-            <form (ngSubmit)="login()">
+            <form [formGroup]="loginForm" (ngSubmit)="login()">
               <h3 class="fw-bold mb-3 text-center" style="color: #0d6efd;">Connexion</h3>
 
               <div class="form-floating mb-3">
-                <input type="email" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.email"
-                  name="email" required />
+                <input type="email" class="form-control form-control-lg" placeholder=" " formControlName="email" />
                 <label>Email</label>
+                <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="text-danger">
+                  Veuillez entrer un email valide
+                </div>
               </div>
 
               <div class="form-floating mb-3">
-                <input type="password" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.password"
-                  name="password" required />
+                <input type="password" class="form-control form-control-lg" placeholder=" " formControlName="password" />
                 <label>Mot de passe</label>
+                <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="text-danger">
+                  Le mot de passe est requis
+                </div>
               </div>
 
               <div class="d-flex justify-content-between mb-3">
@@ -34,7 +38,7 @@
               </div>
 
               <button type="submit" class="btn btn-lg btn-block mb-3 text-white"
-                style="background-color: #0d6efd; width: 100%; border-radius: 10px;" [disabled]="isLoading">
+                style="background-color: #0d6efd; width: 100%; border-radius: 10px;" [disabled]="loginForm.invalid || isLoading">
                 {{ isLoading ? 'Connexion...' : 'Se connecter' }}
               </button>
 
@@ -46,111 +50,113 @@
             </form>
           </div>
 
-          <!-- Formulaire d'Inscription -->
+          <!-- Registration Form -->
           <div class="card shadow-sm p-4" style="border-radius: 15px; border: none;" *ngIf="!showLoginForm">
-            <form (ngSubmit)="onRegister()">
+            <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
               <h3 class="fw-bold mb-3 text-center" style="color: #0d6efd;">Inscription</h3>
 
-              <!-- Sélection du type d'utilisateur -->
+              <!-- User Type Selection -->
               <div class="mb-4 text-center">
                 <div class="btn-group w-100" role="group">
-                  <button type="button" class="btn" [class.btn-primary]="user.role === 'patient'"
-                    [class.btn-outline-primary]="user.role !== 'patient'" (click)="user.role = 'patient'">
+                  <button type="button" class="btn" [class.btn-primary]="registerForm.get('role')?.value === 'patient'"
+                    [class.btn-outline-primary]="registerForm.get('role')?.value !== 'patient'" (click)="setRole('patient')">
                     Patient
                   </button>
-                  <button type="button" class="btn" [class.btn-primary]="user.role === 'doctor'"
-                    [class.btn-outline-primary]="user.role !== 'doctor'" (click)="user.role = 'doctor'">
+                  <button type="button" class="btn" [class.btn-primary]="registerForm.get('role')?.value === 'doctor'"
+                    [class.btn-outline-primary]="registerForm.get('role')?.value !== 'doctor'" (click)="setRole('doctor')">
                     Médecin
                   </button>
                 </div>
               </div>
 
-              <!-- Champs communs -->
+              <!-- Common Fields -->
               <div class="form-floating mb-3">
-                <input type="text" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.username"
-                  name="username" required />
+                <input type="text" class="form-control form-control-lg" placeholder=" " formControlName="username" />
                 <label>Nom d'utilisateur</label>
+                <div *ngIf="registerForm.get('username')?.invalid && registerForm.get('username')?.touched" class="text-danger">
+                  Nom d'utilisateur requis (3-20 caractères)
+                </div>
               </div>
 
               <div class="form-floating mb-3">
-                <input type="text" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.nom"
-                  name="nom" />
+                <input type="text" class="form-control form-control-lg" placeholder=" " formControlName="nom" />
                 <label>Nom</label>
               </div>
 
               <div class="form-floating mb-3">
-                <input type="text" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.prenom"
-                  name="prenom" />
+                <input type="text" class="form-control form-control-lg" placeholder=" " formControlName="prenom" />
                 <label>Prénom</label>
               </div>
 
               <div class="form-floating mb-3">
-                <input type="email" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.email"
-                  name="email" required />
+                <input type="email" class="form-control form-control-lg" placeholder=" " formControlName="email" />
                 <label>Adresse Email</label>
+                <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" class="text-danger">
+                  Veuillez entrer un email valide
+                </div>
               </div>
 
               <div class="form-floating mb-3">
-                <input type="password" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.password"
-                  name="password" required />
+                <input type="password" class="form-control form-control-lg" placeholder=" " formControlName="password" />
                 <label>Mot de passe</label>
+                <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" class="text-danger">
+                  Mot de passe requis (6-40 caractères)
+                </div>
               </div>
 
               <div class="form-floating mb-3">
-                <input type="tel" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.numtel"
-                  name="numtel" />
+                <input type="tel" class="form-control form-control-lg" placeholder=" " formControlName="numtel" />
                 <label>Téléphone</label>
               </div>
 
               <div class="form-floating mb-3">
-                <input type="date" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.dateNaissance"
-                  name="dateNaissance" />
+                <input type="date" class="form-control form-control-lg" placeholder=" " formControlName="dateNaissance" />
                 <label>Date de naissance</label>
               </div>
 
               <div class="form-floating mb-3">
-                <input type="text" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.adresse"
-                  name="adresse" />
+                <input type="text" class="form-control form-control-lg" placeholder=" " formControlName="adresse" />
                 <label>Adresse</label>
               </div>
 
               <div class="form-floating mb-3">
-                <input type="text" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.cin"
-                  name="cin" />
+                <input type="text" class="form-control form-control-lg" placeholder=" " formControlName="cin" />
                 <label>CIN</label>
               </div>
 
-              <!-- Champs spécifiques au patient -->
-              <div *ngIf="user.role === 'patient'">
+              <!-- Patient-Specific Fields -->
+              <div *ngIf="registerForm.get('role')?.value === 'patient'">
                 <div class="form-floating mb-3">
-                  <input type="text" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.numCnss"
-                    name="numCnss" required />
+                  <input type="text" class="form-control form-control-lg" placeholder=" " formControlName="numCnss" />
                   <label>Numéro CNSS</label>
+                  <div *ngIf="registerForm.get('numCnss')?.invalid && registerForm.get('numCnss')?.touched" class="text-danger">
+                    Numéro CNSS requis
+                  </div>
                 </div>
 
                 <div class="form-floating mb-3">
-                  <input type="text" class="form-control form-control-lg" placeholder=" "
-                    [(ngModel)]="user.nomDocteurFamille" name="nomDocteurFamille" />
+                  <input type="text" class="form-control form-control-lg" placeholder=" " formControlName="nomDocteurFamille" />
                   <label>Nom du médecin de famille</label>
                 </div>
 
                 <div class="form-floating mb-3">
-                  <input type="text" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.mpsi"
-                    name="mpsi" />
+                  <input type="text" class="form-control form-control-lg" placeholder=" " formControlName="mpsi" />
                   <label>MPSI</label>
                 </div>
 
                 <div class="form-floating mb-3">
-                  <input type="text" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.numDossier"
-                    name="numDossier" required />
+                  <input type="text" class="form-control form-control-lg" placeholder=" " formControlName="numDossier" />
                   <label>Numéro de dossier</label>
+                  <div *ngIf="registerForm.get('numDossier')?.invalid && registerForm.get('numDossier')?.touched" class="text-danger">
+                    Numéro de dossier requis
+                  </div>
                 </div>
 
                 <div class="mb-3">
                   <label class="form-label">Sélectionnez les maladies</label>
                   <div class="form-check" *ngFor="let maladie of maladies">
                     <input class="form-check-input" type="checkbox" [value]="maladie.id"
-                      [checked]="(user.dossierfile ?? []).includes(maladie.id)"
+                      [checked]="registerForm.get('dossierfile')?.value.includes(maladie.id)"
                       (change)="toggleMaladieSelection(maladie.id)" />
                     <label class="form-check-label">
                       {{ maladie.name }}
@@ -159,29 +165,34 @@
                 </div>
               </div>
 
-              <!-- Champs spécifiques au médecin -->
-              <div *ngIf="user.role === 'doctor'">
+              <!-- Doctor-Specific Fields -->
+              <div *ngIf="registerForm.get('role')?.value === 'doctor'">
                 <div class="form-floating mb-3">
-                  <input type="text" class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.speciality"
-                    name="speciality" required />
+                  <input type="text" class="form-control form-control-lg" placeholder=" " formControlName="speciality" />
                   <label>Spécialité médicale</label>
+                  <div *ngIf="registerForm.get('speciality')?.invalid && registerForm.get('speciality')?.touched" class="text-danger">
+                    Spécialité requise
+                  </div>
                 </div>
 
                 <div class="form-floating mb-3">
-                  <textarea class="form-control form-control-lg" placeholder=" " [(ngModel)]="user.bio" name="bio"
-                    required style="height: 100px;"></textarea>
+                  <textarea class="form-control form-control-lg" placeholder=" " formControlName="bio" style="height: 100px;"></textarea>
                   <label>Bio</label>
+                  <div *ngIf="registerForm.get('bio')?.invalid && registerForm.get('bio')?.touched" class="text-danger">
+                    Bio requise
+                  </div>
                 </div>
               </div>
 
-              <!-- Champ pour l'upload d'image -->
+              <!-- Image Upload -->
               <div class="mb-3">
                 <label class="form-label">Photo de profil (JPEG/PNG)</label>
                 <input type="file" class="form-control" accept="image/jpeg,image/png" (change)="onFileSelected($event)" />
+                <div *ngIf="errorMessage?.includes('image')" class="text-danger">{{ errorMessage }}</div>
               </div>
 
               <button type="submit" class="btn btn-lg btn-block mb-3 text-white"
-                style="background-color: #0d6efd; width: 100%; border-radius: 10px;" [disabled]="isLoading">
+                style="background-color: #0d6efd; width: 100%; border-radius: 10px;" [disabled]="registerForm.invalid || isLoading">
                 {{ isLoading ? 'Inscription...' : 'S\'inscrire' }}
               </button>
 
@@ -189,7 +200,7 @@
                 <a href="#" class="fw-bold" style="color: #0d6efd;" (click)="toggleForm($event)">Se connecter</a>
               </p>
 
-              <p class="text-center text-danger mt-3" *ngIf="errorMessage">{{ errorMessage }}</p>
+              <p class="text-center text-danger mt-3" *ngIf="errorMessage && !errorMessage.includes('image')">{{ errorMessage }}</p>
             </form>
           </div>
         </div>

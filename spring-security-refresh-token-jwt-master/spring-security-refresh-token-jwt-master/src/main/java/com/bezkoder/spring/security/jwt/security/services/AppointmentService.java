@@ -10,4 +10,9 @@ public interface AppointmentService {
     List<AppointmentDTO> getAllAppointments();
     AppointmentDTO updateAppointment(Long id, AppointmentDTO appointmentDTO);
     void deleteAppointment(Long id);
+    List<AppointmentDTO> getAppointmentsByDoctorId(Long doctorId);
+    AppointmentDTO confirmAppointment(Long id);
+    List<AppointmentDTO> getAppointmentsByPatient(Long patientId);
+    void cancelExpiredAppointments();
+    void deleteExpiredCancelledAppointments(); // New method to delete cancelled appointments
 }

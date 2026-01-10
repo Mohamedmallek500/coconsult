@@ -1,0 +1,238 @@
+<div class="container my-5">
+  <!-- Back button -->
+  <div class="mb-3">
+    <button class="btn btn-outline-secondary" (click)="goBack()" aria-label="Back to Home">
+      <i class="bi bi-arrow-left"></i> Back to Home
+    </button>
+  </div>
+
+  <!-- Page Title -->
+  <h2 class="mb-4">My Appointments</h2>
+  <p class="text-muted">View and manage your appointments. Click on a time slot or appointment to view pending appointments and select one to confirm.</p>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3">Loading appointments...</p>
+  </div>
+
+  <!-- Calendar -->
+  <div *ngIf="!isLoading" class="mb-4">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Appointment Schedule</h5>
+        <small class="text-muted">Yellow: Pending | Green: Confirmed | (*): Multiple pending appointments</small>
+      </div>
+      <div class="card-body">
+        <full-calendar [options]="calendarOptions" aria-label="Appointment calendar"></full-calendar>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Appointments Message -->
+  <div *ngIf="!isLoading && appointments.length === 0" class="alert alert-info mt-4">
+    <p>No appointments found. Please check back later or contact support for assistance.</p>
+  </div>
+
+  <!-- Pending Appointments Modal -->
+  <ng-template #pendingAppointmentsModal let-modal>
+    <div class="modal-header bg-secondary text-white">
+      <h5 class="modal-title">Pending Appointments for {{ selectedTimeSlot | date: 'fullDate' }} at {{ selectedTimeSlot | date: 'shortTime' }}</h5>
+      <button type="button" class="btn-close btn-close-white" (click)="closePendingModal()" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let appointment of selectedTimeSlotAppointments">
+            <td>
+              <ng-container *ngIf="isPatientUser(appointment.patient); else patientId">
+                {{ appointment.patient.nom ?? 'Unknown' }} {{ appointment.patient.prenom ?? '' }}
+              </ng-container>
+              <ng-template #patientId>
+                Patient ID: {{ appointment.patient }}
+              </ng-template>
+            </td>
+            <td>
+              <ng-container *ngIf="isPatientUser(appointment.patient); else noEmail">
+                {{ appointment.patient.email }}
+              </ng-container>
+              <ng-template #noEmail>Not available</ng-template>
+            </td>
+            <td>
+              <ng-container *ngIf="isPatientUser(appointment.patient) && appointment.patient.numtel; else noPhone">
+                {{ appointment.patient.numtel }}
+              </ng-container>
+              <ng-template #noPhone>Not available</ng-template>
+            </td>
+            <td>
+              <span
+                [ngClass]="{
+                  'badge': true,
+                  'bg-warning': appointment.status === 'PENDING',
+                  'bg-success': appointment.status === 'CONFIRMED'
+                }"
+                [attr.aria-label]="appointment.status + ' appointment status'"
+              >
+                {{ appointment.status }}
+              </span>
+            </td>
+            <td>
+              <button
+                class="btn btn-primary btn-sm me-2"
+                (click)="selectAppointment(appointment)"
+                [disabled]="isProcessing"
+                aria-label="Select appointment"
+              >
+                Select
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button
+        class="btn btn-outline-secondary"
+        (click)="closePendingModal()"
+        [disabled]="isProcessing"
+        aria-label="Close modal"
+      >
+        Close
+      </button>
+    </div>
+  </ng-template>
+
+  <!-- Appointment Details Modal -->
+  <ng-template #appointmentDetailsModal let-modal>
+    <div class="modal-header bg-primary text-white">
+      <h5 class="modal-title">Appointment Details</h5>
+      <button type="button" class="btn-close btn-close-white" (click)="closeDetailsModal()" aria-label="Close"></button>
+    </div>
+    <div class="modal-body" *ngIf="selectedAppointment">
+      <div class="row">
+        <div class="col-md-6">
+          <h5>Appointment Information</h5>
+          <table class="table table-borderless">
+            <tbody>
+              <tr>
+                <td><strong>Patient:</strong></td>
+                <td>
+                  <ng-container *ngIf="isPatientUser(selectedAppointment.patient); else patientId">
+                    {{ selectedAppointment.patient.nom ?? 'Unknown' }} {{ selectedAppointment.patient.prenom ?? '' }}
+                  </ng-container>
+                  <ng-template #patientId>
+                    Patient ID: {{ selectedAppointment.patient }}
+                  </ng-template>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Email:</strong></td>
+                <td>
+                  <ng-container *ngIf="isPatientUser(selectedAppointment.patient); else noEmail">
+                    {{ selectedAppointment.patient.email }}
+                  </ng-container>
+                  <ng-template #noEmail>Not available</ng-template>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Date:</strong></td>
+                <td>{{ selectedAppointment.date | date: 'fullDate' }}</td>
+              </tr>
+              <tr>
+                <td><strong>Time:</strong></td>
+                <td>{{ selectedAppointment.date | date: 'shortTime' }} - {{ getEndTime(selectedAppointment.date) | date: 'shortTime' }}</td>
+              </tr>
+              <tr>
+                <td><strong>Duration:</strong></td>
+                <td>30 minutes</td>
+              </tr>
+              <tr>
+                <td><strong>Status:</strong></td>
+                <td>
+                  <span
+                    [ngClass]="{
+                      'badge': true,
+                      'bg-warning': selectedAppointment.status === 'PENDING',
+                      'bg-success': selectedAppointment.status === 'CONFIRMED'
+                    }"
+                    [attr.aria-label]="selectedAppointment.status + ' appointment status'"
+                  >
+                    {{ selectedAppointment.status }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col-md-6">
+          <h5>Additional Information</h5>
+          <p *ngIf="isPatientUser(selectedAppointment.patient) && selectedAppointment.patient.numtel">
+            <strong>Phone:</strong> {{ selectedAppointment.patient.numtel }}
+          </p>
+          <p *ngIf="isPatientUser(selectedAppointment.patient) && selectedAppointment.patient.adresse">
+            <strong>Address:</strong> {{ selectedAppointment.patient.adresse }}
+          </p>
+          <p *ngIf="!isPatientUser(selectedAppointment.patient)" class="text-muted">
+            Additional patient details are not available. Contact support for more information.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" *ngIf="selectedAppointment">
+      <button
+        class="btn btn-primary me-2"
+        (click)="confirmAppointment()"
+        [disabled]="isProcessing || selectedAppointment.status === 'CONFIRMED'"
+        aria-label="Confirm appointment"
+      >
+        <span *ngIf="isProcessing" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        {{ isProcessing ? 'Processing...' : 'Confirm Appointment' }}
+      </button>
+      <button
+        class="btn btn-danger me-2"
+        (click)="deleteAppointment()"
+        [disabled]="isProcessing"
+        aria-label="Delete appointment"
+      >
+        <span *ngIf="isProcessing" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        {{ isProcessing ? 'Processing...' : 'Delete Appointment' }}
+      </button>
+      <button
+        class="btn btn-outline-secondary"
+        (click)="closeDetailsModal()"
+        [disabled]="isProcessing"
+        aria-label="Close modal"
+      >
+        Close
+      </button>
+    </div>
+  </ng-template>
+
+  <!-- Instructions -->
+  <div *ngIf="!isLoading && !selectedAppointment && !selectedTimeSlotAppointments && appointments.length > 0" class="alert alert-light mt-4">
+    <h6>How to manage appointments:</h6>
+    <ol>
+      <li>Click on a time slot or appointment in the calendar to view unavailable appointments in a modal</li>
+      <li>Select a pending appointment to view its details in a separate modal</li>
+      <li>Confirmed appointments are shown in green, pending in yellow</li>
+    </ol>
+    <p class="mb-0"><strong>Note:</strong> Contact support if you encounter issues managing appointments.</p>
+  </div>
+</div>

@@ -1,11 +1,7 @@
 package com.bezkoder.spring.security.jwt.security.services;
 
 import com.bezkoder.spring.security.jwt.dto.AppointmentDTO;
-import com.bezkoder.spring.security.jwt.models.Appointment;
-import com.bezkoder.spring.security.jwt.models.Doctor;
-import com.bezkoder.spring.security.jwt.models.Patient;
-import com.bezkoder.spring.security.jwt.models.Ordonnance;
-import com.bezkoder.spring.security.jwt.models.User;
+import com.bezkoder.spring.security.jwt.models.*;
 import com.bezkoder.spring.security.jwt.repository.AppointmentRepository;
 import com.bezkoder.spring.security.jwt.repository.OrdonnanceRepository;
 import com.bezkoder.spring.security.jwt.repository.UserRepository;
@@ -48,19 +44,15 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new RuntimeException("User is not a Patient");
         }
         Patient patient = (Patient) patientUser;
-        // Check for overlapping appointments
-        if (appointmentRepository.existsByDoctorAndDate(doctor, appointmentDTO.getDate())) {
-            throw new RuntimeException("Doctor already has an appointment at this time");
-        }
-        // Create an empty Ordonnance
+
         Ordonnance ordonnance = new Ordonnance(patient, doctor, new HashSet<>());
         ordonnance = ordonnanceRepository.save(ordonnance);
-        // Create Appointment and link Ordonnance
         Appointment appointment = new Appointment();
         appointment.setDoctor(doctor);
         appointment.setPatient(patient);
         appointment.setDate(appointmentDTO.getDate());
         appointment.setOrdonnance(ordonnance);
+        appointment.setStatus(AppointmentStatus.PENDING);
         appointment = appointmentRepository.save(appointment);
         return convertToDTO(appointment);
     }
@@ -99,18 +91,13 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new RuntimeException("User is not a Patient");
         }
         Patient patient = (Patient) patientUser;
-        // Check for overlapping appointments (excluding current appointment)
-        if (appointmentRepository.existsByDoctorAndDateAndIdNot(doctor, appointmentDTO.getDate(), id)) {
-            throw new RuntimeException("Doctor already has an appointment at this time");
-        }
-        // Ensure an Ordonnance exists
+
         Ordonnance ordonnance = appointment.getOrdonnance();
         if (ordonnance == null) {
             ordonnance = new Ordonnance(patient, doctor, new HashSet<>());
             ordonnance = ordonnanceRepository.save(ordonnance);
             appointment.setOrdonnance(ordonnance);
         } else {
-            // Update Ordonnance with new doctor and patient if changed
             ordonnance.setDoctor(doctor);
             ordonnance.setPatient(patient);
             ordonnanceRepository.save(ordonnance);
@@ -118,6 +105,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setDoctor(doctor);
         appointment.setPatient(patient);
         appointment.setDate(appointmentDTO.getDate());
+        appointment.setStatus(appointmentDTO.getStatus() != null ? appointmentDTO.getStatus() : appointment.getStatus());
         appointment = appointmentRepository.save(appointment);
         return convertToDTO(appointment);
     }
@@ -127,11 +115,78 @@ public class AppointmentServiceImpl implements AppointmentService {
     public void deleteAppointment(Long id) {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
-        // Optionally delete associated Ordonnance
         if (appointment.getOrdonnance() != null) {
             ordonnanceRepository.delete(appointment.getOrdonnance());
         }
         appointmentRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public AppointmentDTO confirmAppointment(Long id) {
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+        if (appointment.getStatus() == AppointmentStatus.CONFIRMED) {
+            throw new RuntimeException("Appointment is already confirmed");
+        }
+        if (appointmentRepository.existsByDoctorAndDateAndStatus(appointment.getDoctor(), appointment.getDate(), AppointmentStatus.CONFIRMED)) {
+            throw new RuntimeException("Doctor already has a confirmed appointment at this time");
+        }
+        appointment.setStatus(AppointmentStatus.CONFIRMED);
+        appointment = appointmentRepository.save(appointment);
+        return convertToDTO(appointment);
+    }
+
+    @Override
+    public List<AppointmentDTO> getAppointmentsByDoctorId(Long doctorId) {
+        List<Appointment> appointments = appointmentRepository.findByDoctorId(doctorId);
+        return appointments.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AppointmentDTO> getAppointmentsByPatient(Long patientId) {
+        List<Appointment> appointments = appointmentRepository.findByPatientId(patientId);
+        return appointments.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void cancelExpiredAppointments() {
+        LocalDateTime cutoffTime = LocalDateTime.now().minusHours(1);
+        List<Appointment> expiredAppointments = appointmentRepository
+                .findPendingAppointmentsOlderThan(AppointmentStatus.PENDING, cutoffTime);
+
+        if (!expiredAppointments.isEmpty()) {
+            expiredAppointments.forEach(appointment -> appointment.setStatus(AppointmentStatus.CANCELLED));
+            appointmentRepository.saveAll(expiredAppointments);
+            System.out.println("Cancelled " + expiredAppointments.size() + " expired appointments");
+        } else {
+            System.out.println("No expired appointments found to cancel");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteExpiredCancelledAppointments() {
+        LocalDateTime cutoffTime = LocalDateTime.now().minusHours(24); // Delete CANCELLED appointments older than 24 hours
+        List<Appointment> cancelledAppointments = appointmentRepository
+                .findCancelledAppointmentsOlderThan(AppointmentStatus.CANCELLED, cutoffTime);
+
+        if (!cancelledAppointments.isEmpty()) {
+            cancelledAppointments.forEach(appointment -> {
+                if (appointment.getOrdonnance() != null) {
+                    ordonnanceRepository.delete(appointment.getOrdonnance());
+                }
+                appointmentRepository.delete(appointment);
+            });
+            System.out.println("Deleted " + cancelledAppointments.size() + " expired cancelled appointments");
+        } else {
+            System.out.println("No expired cancelled appointments found to delete");
+        }
     }
 
     private AppointmentDTO convertToDTO(Appointment appointment) {
@@ -140,7 +195,8 @@ public class AppointmentServiceImpl implements AppointmentService {
                 appointment.getDoctor().getId(),
                 appointment.getPatient().getId(),
                 appointment.getDate(),
-                appointment.getOrdonnance() != null ? appointment.getOrdonnance().getId() : null
+                appointment.getOrdonnance() != null ? appointment.getOrdonnance().getId() : null,
+                appointment.getStatus()
         );
     }
 }

@@ -1,0 +1,15 @@
+package com.bezkoder.spring.security.jwt.repository;
+
+import com.bezkoder.spring.security.jwt.models.Question;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface QuestionRepository extends JpaRepository<Question, Long> {
+    List<Question> findByQuizId(Long quizId);
+    List<Question> findByQuizIdAndParentQuestionIdIsNull(Long quizId);
+    List<Question> findByParentQuestionId(Long parentQuestionId);
+    List<Question> findByParentQuestionIdAndParentAnswer(Long parentQuestionId, String parentAnswer);
+}

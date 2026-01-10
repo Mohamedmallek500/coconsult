@@ -9,10 +9,23 @@ import { AuthServiceService } from 'src/services/auth-service.service';
 })
 export class HeaderComponent {
   isAuthenticated: boolean = false;
+  userName: string | null = null;
+  userRole: string | null = null;
 
   constructor(private authService: AuthServiceService, private router: Router) {
+    // Écoute l’état d’authentification
     this.authService.isAuthenticated$.subscribe(status => {
       this.isAuthenticated = status;
+    });
+
+    // Écoute le nom d’utilisateur
+    this.authService.userName$.subscribe(name => {
+      this.userName = name;
+    });
+
+    // Écoute le rôle
+    this.authService.userRole$.subscribe(role => {
+      this.userRole = role;
     });
   }
 
